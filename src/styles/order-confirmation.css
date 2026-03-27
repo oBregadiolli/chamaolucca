@@ -1,0 +1,248 @@
+/* ============================================================
+   Order Confirmation  (oc-*)
+   ============================================================ */
+
+.oc-page {
+  max-width: 540px;
+  margin: 0 auto;
+  padding: 40px 16px 80px;
+}
+
+/* Main card */
+.oc-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 32px 28px;
+  border: 1px solid #f3f4f6;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  display: flex;
+  flex-direction: column;
+  gap: 28px;
+}
+
+/* ── Bloco 1: Confirmação ──────────────────── */
+.oc-confirm-block {
+  text-align: center;
+  padding-bottom: 4px;
+}
+
+.oc-check-badge {
+  width: 72px;
+  height: 72px;
+  background: #dcfce7;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  color: #16a34a;
+  margin: 0 auto 18px;
+  animation: oc-pop 0.45s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes oc-pop {
+  from { transform: scale(0.5); opacity: 0; }
+  to   { transform: scale(1);   opacity: 1; }
+}
+
+.oc-confirm-title {
+  font-size: 1.625rem;
+  font-weight: 800;
+  color: #111;
+  margin-bottom: 6px;
+  line-height: 1.2;
+}
+
+.oc-confirm-sub {
+  font-size: 0.9375rem;
+  color: #6b7280;
+  line-height: 1.5;
+}
+
+/* ── Section label ─────────────────────────── */
+.oc-section-label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #9ca3af;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  margin-bottom: 16px;
+}
+
+/* ── Bloco 2: Status tracker ───────────────── */
+.oc-status-block {
+  background: #f9fafb;
+  border: 1px solid #f3f4f6;
+  border-radius: 16px;
+  padding: 20px 20px 16px;
+}
+
+.oc-status-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  position: relative;
+  padding: 6px 0;
+}
+
+/* Vertical connector */
+.oc-connector {
+  position: absolute;
+  left: 13px;
+  top: -14px;
+  height: 14px;
+  width: 2px;
+  background: #e5e7eb;
+}
+
+.oc-connector.filled {
+  background: #86efac;
+}
+
+/* Circle */
+.oc-status-circle {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  z-index: 1;
+  transition: background 0.2s, box-shadow 0.2s;
+}
+
+.oc-status-row.done .oc-status-circle {
+  background: #dcfce7;
+  color: #16a34a;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.oc-status-row.active .oc-status-circle {
+  background: #16a34a;
+  color: #fff;
+  box-shadow: 0 0 0 4px #dcfce7;
+}
+
+.oc-status-row.pending .oc-status-circle {
+  background: #f3f4f6;
+  color: #d1d5db;
+}
+
+/* Text */
+.oc-status-text {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.oc-status-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.oc-status-row.pending .oc-status-name {
+  color: #d1d5db;
+}
+
+.oc-status-row.active .oc-status-name {
+  color: #16a34a;
+}
+
+.oc-status-desc {
+  font-size: 0.775rem;
+  color: #9ca3af;
+}
+
+/* ── Bloco 3: Info ─────────────────────────── */
+.oc-info-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.oc-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  padding: 9px 0;
+  font-size: 0.9rem;
+  color: #374151;
+  border-bottom: 1px solid #f9fafb;
+}
+
+.oc-info-row:last-child {
+  border-bottom: none;
+}
+
+.oc-info-row strong {
+  font-weight: 700;
+  color: #111;
+}
+
+.oc-info-row.item strong,
+.oc-info-row.item span:last-child {
+  font-weight: 500;
+  color: #374151;
+}
+
+.oc-info-row.total {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #111;
+  padding-top: 12px;
+}
+
+.oc-info-row.total strong {
+  font-size: 1.125rem;
+  color: #16a34a;
+}
+
+.oc-info-divider {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 6px 0;
+}
+
+/* ── Bloco 4: CTA ──────────────────────────── */
+.oc-btn-primary {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  border-radius: 99px;
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.oc-btn-primary:hover {
+  background: #15803d;
+}
+
+/* ── Responsive ────────────────────────────── */
+@media (max-width: 480px) {
+  .oc-card {
+    padding: 24px 18px;
+    gap: 22px;
+  }
+
+  .oc-confirm-title {
+    font-size: 1.375rem;
+  }
+
+  .oc-check-badge {
+    width: 60px;
+    height: 60px;
+    font-size: 1.75rem;
+  }
+}

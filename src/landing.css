@@ -1,0 +1,611 @@
+/* ============================================
+   LANDING PAGE — ChamaoLucca
+   ============================================ */
+
+/* ---- Hero ---- */
+.lp-hero {
+  padding: 24px 24px 0;
+  background: #fff;
+}
+
+.lp-hero-inner {
+  background: #22c55e;
+  border-radius: 28px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  min-height: 400px;
+  overflow: hidden;
+  position: relative;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.lp-hero-text {
+  padding: 56px 48px 56px 56px;
+  z-index: 1;
+}
+
+.lp-hero-headline {
+  font-size: clamp(2rem, 4vw, 3rem);
+  font-weight: 900;
+  line-height: 1.1;
+  color: #fff;
+  margin-bottom: 18px;
+  letter-spacing: -0.5px;
+}
+
+.lp-hero-subtitle {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.92);
+  line-height: 1.6;
+  margin-bottom: 32px;
+  max-width: 340px;
+}
+
+.lp-hero-subtitle strong {
+  font-weight: 700;
+  color: #fff;
+}
+
+.lp-hero-cta {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: #111;
+  color: #fff;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.06em;
+  padding: 16px 40px;
+  border-radius: 9999px;
+  text-decoration: none;
+  transition: transform 150ms ease, box-shadow 150ms ease;
+  white-space: nowrap;
+}
+
+.lp-hero-cta:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+  color: #fff;
+}
+
+.lp-hero-visual {
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  height: 100%;
+  overflow: hidden;
+}
+
+.hero-mascot-svg {
+  width: 100%;
+  max-width: 440px;
+  height: auto;
+  transform: translateY(8px);
+  filter: drop-shadow(0 8px 24px rgba(0,0,0,0.18));
+}
+
+/* ---- Benefits ---- */
+.lp-benefits {
+  padding: 80px 24px;
+  background: #fff;
+}
+
+.lp-benefits-eyebrow {
+  text-align: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #22c55e;
+  margin-bottom: 14px;
+}
+
+.lp-benefits-headline {
+  text-align: center;
+  font-size: clamp(1.35rem, 3vw, 1.9rem);
+  font-weight: 800;
+  color: #111;
+  line-height: 1.35;
+  margin-bottom: 56px;
+}
+
+.lp-benefits-chegou {
+  color: #22c55e;
+  font-weight: 900;
+}
+
+.lp-benefits-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.lp-benefit-item {
+  text-align: center;
+  padding: 32px 24px;
+  border-radius: 20px;
+  background: #fff;
+  border: 1.5px solid transparent;
+  transition: background 200ms ease, border-color 200ms ease, box-shadow 200ms ease;
+}
+
+.lp-benefit-item:hover {
+  background: #f9fafb;
+  border-color: #e5e7eb;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+}
+
+.lp-benefit-icon {
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+}
+
+.benefit-icon-svg {
+  width: 120px;
+  height: 120px;
+}
+
+.lp-benefit-title {
+  font-size: 0.95rem;
+  font-weight: 900;
+  letter-spacing: 0.03em;
+  color: #111;
+  white-space: pre-line;
+  line-height: 1.2;
+  margin-bottom: 12px;
+  text-transform: uppercase;
+}
+
+.lp-benefit-text {
+  font-size: 0.825rem;
+  color: #6b7280;
+  line-height: 1.6;
+  max-width: 200px;
+  margin: 0 auto;
+}
+
+/* ---- Dark Highlight ---- */
+.lp-dark {
+  background: #111;
+  padding: 80px 24px;
+}
+
+.lp-dark-inner {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 64px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.lp-dark-eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: rgba(255,255,255,0.5);
+  margin-bottom: 14px;
+}
+
+.lp-dark-arrow {
+  color: #22c55e;
+  margin-right: 4px;
+}
+
+.lp-dark-headline {
+  font-size: clamp(1.8rem, 4vw, 2.75rem);
+  font-weight: 900;
+  color: #22c55e;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.lp-dark-body {
+  font-size: 0.875rem;
+  color: rgba(255,255,255,0.68);
+  line-height: 1.7;
+  max-width: 340px;
+}
+
+.lp-dark-body strong {
+  color: #fff;
+  font-weight: 800;
+}
+
+/* Phone mockup */
+.lp-dark-visual {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.phone-frame {
+  background: #1a1a1a;
+  border: 3px solid #333;
+  border-radius: 36px;
+  width: 220px;
+  height: 440px;
+  overflow: hidden;
+  box-shadow: 0 24px 64px rgba(0,0,0,0.6), inset 0 0 0 1px #444;
+  position: relative;
+}
+
+.phone-notch {
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 80px;
+  height: 20px;
+  background: #1a1a1a;
+  border-bottom-left-radius: 12px;
+  border-bottom-right-radius: 12px;
+  z-index: 10;
+}
+
+.phone-screen {
+  background: #fff;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: 28px;
+  overflow: hidden;
+}
+
+.app-screen-header {
+  background: #22c55e;
+  padding: 14px 16px;
+}
+
+.app-screen-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.app-brand {
+  font-size: 0.62rem;
+  font-weight: 900;
+  color: #fff;
+  letter-spacing: 0.05em;
+}
+
+.app-screen-body {
+  flex: 1;
+  padding: 14px 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: #f9fafb;
+}
+
+.app-screen-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: #fff;
+  border: 1px solid #e5e7eb;
+  border-radius: 10px;
+  padding: 10px 12px;
+}
+
+.app-screen-item-dot {
+  width: 8px;
+  height: 8px;
+  background: #22c55e;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.app-screen-item-label {
+  font-size: 0.52rem;
+  font-weight: 800;
+  color: #111;
+  letter-spacing: 0.04em;
+}
+
+.app-screen-item-sub {
+  font-size: 0.48rem;
+  color: #9ca3af;
+  margin-top: 1px;
+}
+
+/* ---- Categories ---- */
+.lp-categories {
+  padding: 48px 24px;
+  background: #f3f4f6;
+}
+
+.lp-categories-card {
+  background: #fff;
+  border-radius: 24px;
+  padding: 40px 40px 36px;
+  border: 1px solid #e5e7eb;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.lp-categories-title {
+  font-size: clamp(1.1rem, 2.5vw, 1.5rem);
+  font-weight: 900;
+  color: #111;
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.lp-categories-row {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  justify-content: center;
+  flex-wrap: wrap;
+  scrollbar-width: none;
+}
+
+.lp-categories-row::-webkit-scrollbar {
+  display: none;
+}
+
+.lp-category-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  min-width: 80px;
+  cursor: pointer;
+  transition: transform 150ms ease;
+  text-decoration: none;
+}
+
+.lp-category-item:hover {
+  transform: translateY(-4px);
+}
+
+.lp-category-icon {
+  width: 68px;
+  height: 68px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 2rem;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+}
+
+.lp-category-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-align: center;
+  color: #111;
+  white-space: pre-line;
+  line-height: 1.3;
+}
+
+/* ---- Testimonials ---- */
+.lp-testimonials {
+  padding: 80px 24px;
+  background: #fff;
+}
+
+.lp-testimonials-title {
+  text-align: center;
+  font-size: clamp(1.2rem, 3vw, 1.75rem);
+  font-weight: 900;
+  letter-spacing: 0.025em;
+  color: #111;
+  margin-bottom: 48px;
+}
+
+.lp-testimonials-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  max-width: 960px;
+  margin: 0 auto;
+}
+
+.lp-testimonial-card {
+  background: #f9fafb;
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.lp-testimonial-stars {
+  color: #22c55e;
+  font-size: 0.95rem;
+  letter-spacing: 2px;
+}
+
+.lp-testimonial-text {
+  font-size: 0.82rem;
+  color: #4b5563;
+  line-height: 1.75;
+  font-style: normal;
+}
+
+/* ---- Footer landing ---- */
+.lp-footer {
+  border-top: 1px solid #e5e7eb;
+  background: #fff;
+  padding: 40px 24px;
+}
+
+.lp-footer-inner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 24px;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.lp-footer-brand {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.lp-footer-logo-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.lp-footer-wordmark {
+  font-size: 2rem;
+  font-weight: 900;
+  color: #111;
+  letter-spacing: -1px;
+}
+
+.lp-footer-tagline {
+  font-size: 0.72rem;
+  color: #9ca3af;
+  margin-left: 44px;
+}
+
+.lp-footer-social {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.lp-footer-insta {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  border-radius: 50%;
+  background: #111;
+  color: #fff;
+  transition: transform 150ms ease;
+  text-decoration: none;
+}
+
+.lp-footer-insta:hover {
+  transform: scale(1.1);
+  color: #fff;
+}
+
+.lp-footer-signature {
+  display: flex;
+  align-items: flex-end;
+}
+
+.lp-footer-sig-text {
+  font-family: "Georgia", serif;
+  font-size: 1.5rem;
+  font-style: italic;
+  font-weight: 700;
+  color: #111;
+  border-bottom: 2px solid #111;
+  padding-bottom: 2px;
+  letter-spacing: -0.5px;
+}
+
+/* ============================================
+   LANDING — Responsividade Mobile
+   ============================================ */
+@media (max-width: 768px) {
+  .lp-hero {
+    padding: 12px 12px 0;
+  }
+
+  .lp-hero-inner {
+    grid-template-columns: 1fr;
+    border-radius: 20px;
+    min-height: unset;
+  }
+
+  .lp-hero-text {
+    padding: 36px 24px 20px;
+    text-align: center;
+  }
+
+  .lp-hero-subtitle {
+    max-width: 100%;
+  }
+
+  .lp-hero-visual {
+    justify-content: center;
+  }
+
+  .hero-mascot-svg {
+    max-width: 260px;
+    transform: translateY(4px);
+  }
+
+  .lp-benefits-grid {
+    grid-template-columns: 1fr;
+    gap: 8px;
+  }
+
+  .lp-dark-inner {
+    grid-template-columns: 1fr;
+    gap: 40px;
+    text-align: center;
+  }
+
+  .lp-dark-body {
+    max-width: 100%;
+    margin: 0 auto;
+  }
+
+  .lp-dark-visual {
+    order: -1;
+  }
+
+  .lp-testimonials-grid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .lp-categories-card {
+    padding: 24px 16px;
+  }
+
+  .lp-categories-row {
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    padding-bottom: 8px;
+  }
+
+  .lp-footer-inner {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .lp-footer-social {
+    justify-content: flex-start;
+  }
+}
+
+/* ---- Header logo refinements ---- */
+.header-logo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  text-decoration: none;
+}
+
+.header-logo-script {
+  font-family: "Georgia", serif;
+  font-size: 1.3rem;
+  font-style: italic;
+  font-weight: 700;
+  color: #111;
+  border-bottom: 2px solid #111;
+  padding-bottom: 1px;
+  letter-spacing: -0.5px;
+}
