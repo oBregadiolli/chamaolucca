@@ -24,6 +24,10 @@ import AdminCategories from './admin/pages/AdminCategories';
 import AdminSettings from './admin/pages/AdminSettings';
 import AdminCoupons from './admin/pages/AdminCoupons';
 import AdminDeliveryExceptions from './admin/pages/AdminDeliveryExceptions';
+import AdminRoutes from './admin/pages/AdminRoutes';
+import AdminRouteDetail from './admin/pages/AdminRouteDetail';
+import AdminDrivers from './admin/pages/AdminDrivers';
+import AdminGeocoding from './admin/pages/AdminGeocoding';
 
 export default function App() {
   const [authOpen, setAuthOpen] = useState(false);
@@ -50,6 +54,10 @@ export default function App() {
                 <Route path="configuracoes"  element={<AdminSettings />} />
                 <Route path="cupons"         element={<AdminCoupons />} />
                 <Route path="agenda"         element={<AdminDeliveryExceptions />} />
+                <Route path="rotas"          element={<AdminRoutes />} />
+                <Route path="rotas/:id"       element={<AdminRouteDetail />} />
+                <Route path="entregadores"     element={<AdminDrivers />} />
+                <Route path="geocodificacao" element={<AdminGeocoding />} />
               </Route>
 
               {/* ── Storefront routes ── */}

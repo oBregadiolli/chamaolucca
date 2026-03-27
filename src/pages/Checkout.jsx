@@ -21,8 +21,6 @@ const STEP_META = [
   { key: CHECKOUT_STEPS.CONFIRMATION, label: 'Revisão'     },
 ];
 
-const FRETE = 4.0;
-
 /* ── Payment error screen ─────────────────────────── */
 function PaymentErrorScreen({ message, orderId, orderNumber, onRetry, retrying }) {
   const navigate = useNavigate();

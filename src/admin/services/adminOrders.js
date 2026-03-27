@@ -12,6 +12,7 @@ export async function fetchAllOrders() {
       delivery_date, delivery_time, payment_method, phone,
       observations, notes, coupon_code, created_at, updated_at,
       payment_status, payment_id, payment_provider, paid_at,
+      lat, lng, geocoded_at,
       user_id,
       profiles:user_id ( id, name, email, phone )
     `)

@@ -9,6 +9,10 @@ export default function AdminSettings() {
   const [closeTime,      setCloseTime]      = useState('23:00');
   const [citiesInput,    setCitiesInput]    = useState('Alagoinhas');
   const [cityInput,      setCityInput]      = useState('');
+  const [storeCity,      setStoreCity]      = useState('Alagoinhas');
+  const [storeAddress,   setStoreAddress]   = useState('');
+  const [storeLat,       setStoreLat]       = useState('');
+  const [storeLng,       setStoreLng]       = useState('');
   const [loading,        setLoading]        = useState(true);
   const [saving,         setSaving]         = useState(false);
   const [toast,          setToast]          = useState(null);
@@ -51,6 +55,10 @@ export default function AdminSettings() {
           if (map.shipping_fee)          setShippingFee(map.shipping_fee);
           if (map.free_shipping_above)   setFreeShippingAbove(map.free_shipping_above);
           if (map.free_shipping_active)  setFreeShippingActive(map.free_shipping_active === 'true');
+          if (map.store_city)            setStoreCity(map.store_city);
+          if (map.store_address != null) setStoreAddress(map.store_address);
+          if (map.store_lat     != null) setStoreLat(map.store_lat);
+          if (map.store_lng     != null) setStoreLng(map.store_lng);
         }
         setLoading(false);
       });
@@ -167,6 +175,10 @@ export default function AdminSettings() {
       supabase.from('store_settings').upsert({ key: 'shipping_fee',         value: String(shippingFee || '4.00'),   label: 'Valor fixo do frete (R$)'           }, { onConflict: 'key' }),
       supabase.from('store_settings').upsert({ key: 'free_shipping_above',  value: String(freeShippingAbove || '0'),label: 'Frete grátis acima de (R$)'         }, { onConflict: 'key' }),
       supabase.from('store_settings').upsert({ key: 'free_shipping_active', value: String(freeShippingActive),      label: 'Frete grátis habilitado'             }, { onConflict: 'key' }),
+      supabase.from('store_settings').upsert({ key: 'store_city',           value: storeCity,                       label: 'Cidade da loja (usada na geração de rotas)'  }, { onConflict: 'key' }),
+      supabase.from('store_settings').upsert({ key: 'store_address',        value: storeAddress,                    label: 'Endereço da loja (usado como origem das rotas)' }, { onConflict: 'key' }),
+      supabase.from('store_settings').upsert({ key: 'store_lat',            value: storeLat,                        label: 'Latitude da loja (usado na otimização de rotas)'  }, { onConflict: 'key' }),
+      supabase.from('store_settings').upsert({ key: 'store_lng',            value: storeLng,                        label: 'Longitude da loja (usado na otimização de rotas)' }, { onConflict: 'key' }),
     ];
     const results = await Promise.all(updates);
     setSaving(false);
@@ -725,6 +737,82 @@ export default function AdminSettings() {
               <Icon name="info" size={13} />
               <span><strong>Máx. pedidos</strong> em branco = ilimitado. O checkout bloqueia o horário quando a capacidade é atingida.</span>
             </div>
+          </div>
+        </div>
+
+        {/* ── Origem da Rota ── */}
+        <div className="admin-card">
+          <h2 style={{ fontSize: '1rem', fontWeight: 700, color: '#111', marginBottom: 4, display: 'flex', alignItems: 'center', gap: 8 }}>
+            <Icon name="route" size={20} style={{ color: '#7c3aed' }} />
+            Origem das Rotas
+          </h2>
+          <p style={{ fontSize: '0.8125rem', color: '#6b7280', marginBottom: 16 }}>
+            Ponto de partida usado na otimização de rotas. Configure o endereço exacto da loja para que o Google calcule a sequência mais eficiente.
+          </p>
+
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: 6 }}>Cidade da loja</label>
+              <input
+                type="text"
+                className="admin-input"
+                value={storeCity}
+                onChange={e => setStoreCity(e.target.value)}
+                placeholder="Ex: Alagoinhas"
+              />
+            </div>
+            <div>
+              <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: 6 }}>Endereço completo da loja</label>
+              <input
+                type="text"
+                className="admin-input"
+                value={storeAddress}
+                onChange={e => setStoreAddress(e.target.value)}
+                placeholder="Ex: Rua das Flores, 100, Centro, Alagoinhas, BA"
+              />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12 }}>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                  Latitude
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 400, marginLeft: 4 }}>opcional</span>
+                </label>
+                <input
+                  type="text"
+                  className="admin-input"
+                  value={storeLat}
+                  onChange={e => setStoreLat(e.target.value)}
+                  placeholder="Ex: -12.1339"
+                />
+              </div>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.8125rem', fontWeight: 600, color: '#374151', marginBottom: 6 }}>
+                  Longitude
+                  <span style={{ fontSize: '0.72rem', color: '#94a3b8', fontWeight: 400, marginLeft: 4 }}>opcional</span>
+                </label>
+                <input
+                  type="text"
+                  className="admin-input"
+                  value={storeLng}
+                  onChange={e => setStoreLng(e.target.value)}
+                  placeholder="Ex: -38.4197"
+                />
+              </div>
+            </div>
+            {(!storeLat || !storeLng) && (
+              <div style={{
+                display: 'flex', alignItems: 'flex-start', gap: 8,
+                background: '#f5f3ff', border: '1px solid #ddd6fe',
+                borderRadius: 8, padding: '10px 12px', fontSize: '0.78rem', color: '#5b21b6',
+              }}>
+                <Icon name="info" size={14} style={{ color: '#7c3aed', flexShrink: 0, marginTop: 1 }} />
+                <span>
+                  Sem lat/lng, a rota saíra do endereço textual. Para precisão máxima, obtenha as coordenadas em{' '}
+                  <a href="https://www.google.com/maps" target="_blank" rel="noreferrer" style={{ color: '#7c3aed', fontWeight: 600 }}>Google Maps</a>{' '}
+                  (clique com botão direito → "O que há aqui?").
+                </span>
+              </div>
+            )}
           </div>
         </div>
 

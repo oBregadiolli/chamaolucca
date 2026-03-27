@@ -11,6 +11,9 @@ const NAV_ITEMS = [
   { to: '/admin/configuracoes',    label: 'Configurações', icon: 'settings'                   },
   { to: '/admin/cupons',           label: 'Cupons',        icon: 'confirmation_number'        },
   { to: '/admin/agenda',           label: 'Agenda',        icon: 'event_note'                 },
+  { to: '/admin/rotas',            label: 'Rotas',         icon: 'route'                      },
+  { to: '/admin/entregadores',     label: 'Entregadores',  icon: 'person_pin'                 },
+  { to: '/admin/geocodificacao',   label: 'Geocódigos',    icon: 'my_location'                },
 ];
 
 export default function AdminLayout() {
