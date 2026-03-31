@@ -82,12 +82,20 @@ function SidebarItem({ item, onUpdate, onRemove }) {
       <div className="cart-sidebar-item-row">
         <div className="cart-sidebar-item-img">
           {item.image_url && item.image_url.startsWith('http') ? (
-            <img
-              src={item.image_url}
-              alt={item.name}
-              style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }}
-              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-            />
+            <>
+              <img
+                src={item.image_url}
+                alt={item.name}
+                style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }}
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextSibling.style.display = 'flex';
+                }}
+              />
+              <span className="material-symbols-rounded" style={{ fontSize: 22, color: '#d1d5db', display: 'none', alignItems: 'center', justifyContent: 'center', width: '100%', height: '100%' }}>
+                shopping_basket
+              </span>
+            </>
           ) : (
             <span className="material-symbols-rounded" style={{ fontSize: 22, color: '#d1d5db' }}>
               shopping_basket
@@ -113,7 +121,7 @@ function SidebarItem({ item, onUpdate, onRemove }) {
           aria-label={quantity === 1 ? 'Remover item' : 'Diminuir quantidade'}
         >
           {quantity === 1 ? (
-            <span className="material-symbols-rounded" style={{ fontSize: 15 }}>delete</span>
+            <span className="material-symbols-rounded" style={{ fontSize: 15, color: '#fff' }}>delete</span>
           ) : '−'}
         </button>
         <span className="sidebar-qty-num">{quantity}</span>

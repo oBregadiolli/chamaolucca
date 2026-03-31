@@ -3,7 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import Icon from '../ui/Icon';
-import logobylucca from '../../assets/logobylucca.png';
+import fotoLaranja from '../../assets/fotoLaranja.png';
 import HowToGetDialog from '../ui/HowToGetDialog';
 
 export default function Header({ onOpenAuth }) {
@@ -20,12 +20,22 @@ export default function Header({ onOpenAuth }) {
       <header className="header">
         <div className="header-inner">
           {/* Logo */}
-          <Link to="/" className="header-logo" aria-label="ChamaoLucca — ir para início">
+          <Link to="/" className="header-logo" aria-label="ChamaoLucca — ir para início" style={{
+            display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none',
+          }}>
             <img
-              src={logobylucca}
-              alt="ChamaoLucca"
-              style={{ height: 36, width: 'auto', display: 'block' }}
+              src={fotoLaranja}
+              alt=""
+              style={{ height: 40, width: 'auto', display: 'block', borderRadius: 8 }}
             />
+            <span style={{
+              fontFamily: "'Pacifico', cursive",
+              fontSize: '1.4rem',
+              color: '#16a34a',
+              fontWeight: 400,
+            }}>
+              Lucca
+            </span>
           </Link>
 
           <div className="header-actions">

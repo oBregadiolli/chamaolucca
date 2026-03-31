@@ -13,6 +13,7 @@ import Store from './pages/Store';
 import Profile from './pages/Profile';
 import Checkout from './pages/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation';
+import ProductDetail from './pages/ProductDetail';
 
 // Admin
 import AdminGuard from './admin/AdminGuard';
@@ -84,6 +85,7 @@ export default function App() {
                         <Route path="/perfil" element={<Profile />} />
                         <Route path="/checkout" element={<Checkout />} />
                         <Route path="/pedido/:id" element={<OrderConfirmation />} />
+                        <Route path="/item/:productId" element={<ProductDetail />} />
                       </Routes>
                     </main>
 

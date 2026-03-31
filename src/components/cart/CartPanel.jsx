@@ -34,11 +34,14 @@ export default function CartPanel({ onOpenAuth }) {
         {/* ── Header ── */}
         <div className="cart-modal-header">
           <div className="cart-modal-header-logo">
-            <img
-              src={logobylucca}
-              alt="ChamaoLucca"
-              style={{ height: 32, width: 'auto', display: 'block' }}
-            />
+            {/* Laranjinha mascote */}
+            <svg viewBox="0 0 400 420" fill="none" xmlns="http://www.w3.org/2000/svg" width="40" height="42" aria-hidden="true">
+              <ellipse cx="200" cy="270" rx="160" ry="145" fill="#F5A263" stroke="#111" strokeWidth="8" />
+              <ellipse cx="248" cy="230" rx="28" ry="28" fill="white" opacity="0.85" />
+              <path d="M155 110 C120 60 80 40 90 20 C120 55 160 80 165 120Z" fill="#22c55e" stroke="#111" strokeWidth="6" strokeLinejoin="round" />
+              <path d="M200 130 Q205 90 220 60" stroke="#111" strokeWidth="7" strokeLinecap="round" fill="none" />
+              <path d="M220 60 C250 30 290 20 310 50 C280 55 250 70 240 100" fill="#22c55e" stroke="#111" strokeWidth="6" strokeLinejoin="round" />
+            </svg>
           </div>
           <div className="cart-modal-header-text">
             <p className="cart-modal-header-subtitle">Sacola no Lucca Mercado</p>
@@ -219,12 +222,30 @@ function CartItem({ item, onUpdate, onRemove }) {
       {/* Product image */}
       <div className="cart-modal-item-img">
         {isUrl ? (
-          <img src={item.image_url} alt={item.name} />
-        ) : (
-          <span className="cart-modal-item-emoji">
-            {item.image_url || <Icon name="inventory_2" size={28} style={{ color: '#94a3b8' }} />}
-          </span>
-        )}
+          <img
+            src={item.image_url}
+            alt={item.name}
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              e.currentTarget.nextSibling.style.display = 'flex';
+            }}
+          />
+        ) : null}
+        {/* Fallback — shown when no URL or image fails */}
+        <span
+          className="material-symbols-rounded"
+          style={{
+            display: isUrl ? 'none' : 'flex',
+            fontSize: 28,
+            color: '#d1d5db',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%',
+          }}
+        >
+          shopping_basket
+        </span>
       </div>
 
       {/* Middle: name + qty controls + actions */}

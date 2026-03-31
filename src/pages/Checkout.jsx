@@ -388,13 +388,14 @@ function CheckoutFlow() {
 
       const { data, error: fnErr } = await supabase.functions.invoke('create-mp-preference', {
         body: {
-          order_id:     order.id,
-          order_number: order.order_number,
-          items:        itemsSnapshot,
-          payer_email:  user.email ?? `${user.id}@chamaolucca.com`,
-          payer_name:   profile?.name ?? 'Cliente',
-          shipping:     shipping,
-          app_url:      appUrl,
+          order_id:       order.id,
+          order_number:   order.order_number,
+          items:          itemsSnapshot,
+          payer_email:    user.email ?? `${user.id}@chamaolucca.com`,
+          payer_name:     profile?.name ?? 'Cliente',
+          shipping:       shipping,
+          app_url:        appUrl,
+          payment_method: payment, // pix | credit | debit → MP pre-selects the tab
         },
       });
 

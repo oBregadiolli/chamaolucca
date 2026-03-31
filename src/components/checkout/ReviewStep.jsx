@@ -104,10 +104,26 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
           {items.map((item) => (
             <li key={item.id} className="rv-item">
               <div className="rv-item-thumb" aria-hidden="true">
-                {item.image_url
-                  ? <img src={item.image_url} alt={item.name} className="rv-thumb-img" />
-                  : <span className="rv-thumb-emoji"><Icon name="shopping_cart" size={22} style={{ color: '#94a3b8' }} /></span>
-                }
+                {item.image_url ? (
+                  <>
+                    <img
+                      src={item.image_url}
+                      alt={item.name}
+                      className="rv-thumb-img"
+                      onError={(e) => {
+                        e.currentTarget.style.display = 'none';
+                        e.currentTarget.nextSibling.style.display = 'flex';
+                      }}
+                    />
+                    <span className="rv-thumb-emoji" style={{ display: 'none' }}>
+                      <Icon name="shopping_basket" size={22} style={{ color: '#d1d5db' }} />
+                    </span>
+                  </>
+                ) : (
+                  <span className="rv-thumb-emoji">
+                    <Icon name="shopping_basket" size={22} style={{ color: '#d1d5db' }} />
+                  </span>
+                )}
               </div>
               <span className="rv-item-name">
                 <strong>{item.quantity}x</strong> {item.name}

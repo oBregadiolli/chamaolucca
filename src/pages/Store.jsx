@@ -51,7 +51,7 @@ export default function Store({ onOpenAuth }) {
           <div>
             <h1 className="store-headline">Nada de filas ッ</h1>
             <p className="store-subtitle">
-              <Icon name="location_on" size={16} fill style={{ color: '#16a34a' }} /> ChamaoLucca · Alagoinhas{' '}
+              <Icon name="location_on" size={16} fill style={{ color: '#16a34a' }} /> Shopper • Alagoinhas{' '}
               {products.length > 0 && `(+${products.length} itens)`}
             </p>
             <div className="store-status-row">
