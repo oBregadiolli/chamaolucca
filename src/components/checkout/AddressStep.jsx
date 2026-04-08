@@ -4,6 +4,7 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { supabase } from '../../lib/supabase';
 import Icon from '../ui/Icon';
+import FreeShippingBanner from './FreeShippingBanner';
 
 /* ── Helpers de máscara ── */
 function maskPhone(v) {
@@ -56,6 +57,10 @@ export default function AddressStep({ onBackToStore }) {
   const { address, setAddress, savedAddress, chooseAddress, nextStep } = useCheckout();
   const { setIsOpen } = useCart();
   const { user } = useAuth();
+
+  // Geolocation state
+  const [geoLoading, setGeoLoading] = useState(false);
+  const [geoError, setGeoError]     = useState('');
 
   const [savedAddresses, setSavedAddresses] = useState([]);
   const [loadingAddresses, setLoadingAddresses] = useState(false);
@@ -310,17 +315,70 @@ export default function AddressStep({ onBackToStore }) {
 
   const isAddressFilled = address.street.trim().length > 0;
 
+  /** Busca localização atual via Geolocation API + reverse geocoding */
+  async function handleGeolocation() {
+    if (!navigator.geolocation) {
+      setGeoError('Geolocalização não suportada neste navegador.');
+      return;
+    }
+    setGeoLoading(true);
+    setGeoError('');
+
+    navigator.geolocation.getCurrentPosition(
+      async (pos) => {
+        try {
+          const { latitude, longitude } = pos.coords;
+          const res = await fetch(`${EDGE_URL}/reverse-geocode`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ lat: latitude, lng: longitude }),
+          });
+          const json = await res.json();
+
+          if (json.results && json.results.length > 0) {
+            const comps = json.results[0].address_components || [];
+            const get = (types) =>
+              comps.find((c) => types.some((t) => c.types.includes(t)))?.long_name || '';
+
+            const route        = get(['route']);
+            const streetNumber = get(['street_number']);
+            const neighborhood = get(['sublocality_level_1', 'sublocality', 'neighborhood']);
+            const zip          = maskCep(get(['postal_code']));
+            const streetFull   = route + (streetNumber ? ', ' + streetNumber : '');
+
+            setAddress((prev) => ({
+              ...prev,
+              street: streetFull || json.results[0].formatted_address || '',
+              neighborhood,
+              zipCode: zip,
+            }));
+          } else {
+            setGeoError('Não foi possível identificar o endereço.');
+          }
+        } catch {
+          setGeoError('Erro ao buscar endereço. Tente novamente.');
+        } finally {
+          setGeoLoading(false);
+        }
+      },
+      (err) => {
+        setGeoLoading(false);
+        if (err.code === 1) {
+          setGeoError('Permissão de localização negada.');
+        } else if (err.code === 2) {
+          setGeoError('Localização indisponível no momento.');
+        } else {
+          setGeoError('Tempo esgotado ao buscar localização.');
+        }
+      },
+      { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+    );
+  }
+
   return (
     <div className="co-address-wrapper">
-      {/* Banner faltou algo */}
-      <button
-        className="co-banner"
-        onClick={() => setIsOpen(true)}
-        aria-label="Abrir carrinho — faltou algo na sua lista?"
-      >
-        <span className="co-banner-icon"><CartIcon /></span>
-        <span className="co-banner-text">Faltou algo na sua lista?</span>
-      </button>
+      {/* Banner frete grátis */}
+      <FreeShippingBanner onGoToStore={onBackToStore} />
 
       {/* Endereços salvos */}
       {!loadingAddresses && savedAddresses.length > 0 && (
@@ -573,6 +631,31 @@ export default function AddressStep({ onBackToStore }) {
               maxLength={120}
             />
           </div>
+
+          {/* Botão geolocalização */}
+          <button
+            type="button"
+            className="co-geoloc-btn"
+            onClick={handleGeolocation}
+            disabled={geoLoading}
+          >
+            <span className="material-symbols-rounded" style={
+              geoLoading ? { animation: 'spin 1s linear infinite' } : undefined
+            }>
+              {geoLoading ? 'progress_activity' : 'my_location'}
+            </span>
+            {geoLoading ? 'Buscando...' : 'Usar minha localização atual'}
+          </button>
+
+          {geoError && (
+            <p style={{
+              fontSize: '0.78rem', color: '#dc2626', margin: '-8px 0 12px',
+              display: 'flex', alignItems: 'center', gap: 4,
+            }}>
+              <span className="material-symbols-rounded" style={{ fontSize: 15 }}>error</span>
+              {geoError}
+            </p>
+          )}
 
           {/* Botão Definir como endereço padrão */}
           <div className="co-choose-row">

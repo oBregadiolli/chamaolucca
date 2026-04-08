@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useCheckout } from '../../context/CheckoutContext';
 import { getDeliveryDates } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
+import FreeShippingBanner from './FreeShippingBanner';
 
 /* ── Bairros elegíveis para entrega rápida ── */
 const EXPRESS_NEIGHBORHOODS = ['jardim petrolar'];
@@ -94,6 +95,7 @@ export default function ScheduleStep() {
 
   return (
     <div className="co-step-wrapper">
+      <FreeShippingBanner />
       <div className="co-card">
         <div className="co-card-header">
           <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#22c55e"

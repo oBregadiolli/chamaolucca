@@ -3,66 +3,104 @@ import { supabase } from '../lib/supabase';
 
 const CartContext = createContext({});
 
-/**
- * CartContext — Carrinho persistido no Supabase (carts + cart_items).
- *
- * Estratégia de merge ao logar:
- *  1. Captura itens locais ANTES de buscar o banco
- *  2. Carrega carrinho ativo do banco
- *  3. Merge: soma quantidades para produtos iguais, mantém itens únicos de ambos
- *  4. Persiste o resultado no banco
- *  5. Limpa a referência local temporária
- *
- * Race conditions evitadas:
- *  - mergeInProgress ref impede duplos disparo
- *  - upsert nativo no banco previne conflitos de escrita
- *  - syncFailure expõe erros para feedback mínimo ao usuário
- */
+// ── localStorage helpers ─────────────────────────────────
+const LS_KEY = 'lucca_cart';
 
+function readLS() {
+  try {
+    const raw = localStorage.getItem(LS_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch { return []; }
+}
+
+function writeLS(items) {
+  try {
+    localStorage.setItem(LS_KEY, JSON.stringify(items));
+  } catch { /* quota exceeded — silently fail */ }
+}
+
+function clearLS() {
+  try { localStorage.removeItem(LS_KEY); } catch { /* noop */ }
+}
+
+/**
+ * CartContext — Dual Storage (localStorage + Supabase)
+ *
+ * Estratégia:
+ *  1. Estado inicial lido do localStorage (síncrono, 0ms — nunca "pisca")
+ *  2. Quando usuário loga → carrega banco, merge com local, persiste ambos
+ *  3. Toda mutação (add/remove/update) → grava state + localStorage + banco
+ *  4. Quando volta de redirect externo (MP) → localStorage garante carrinho intacto
+ *  5. Deslogou → mantém localStorage para merge futuro
+ *
+ * Performance:
+ *  - Zero flickering: localStorage é síncrono no primeiro render
+ *  - Supabase sync é fire-and-forget (não bloqueia UI)
+ *  - Merge inteligente: soma quantidades p/ produtos duplicados
+ *  - mergeInProgress ref previne race conditions
+ */
 export function CartProvider({ children }) {
+  // Estado inicial: lê localStorage sincronamente (sem delay)
   const [cartId,       setCartId]       = useState(null);
-  const [items,        setItems]        = useState([]);
+  const [items,        setItems]        = useState(() => readLS());
   const [isOpen,       setIsOpen]       = useState(false);
   const [userId,       setUserId]       = useState(null);
-  const [syncFailure,  setSyncFailure]  = useState(false); // feedback de falha de sync
+  const [syncFailure,  setSyncFailure]  = useState(false);
 
   // Refs para evitar race conditions
-  const mergeInProgress = useRef(false);
-  const pendingLocalItems = useRef([]); // itens antes do login
+  const mergeInProgress  = useRef(false);
+  const pendingLocalItems = useRef([]);
+  const itemsRef         = useRef(items);
+  const userIdRef        = useRef(userId);
+  const cartIdRef        = useRef(cartId);
 
-  // ── Observa sessão ────────────────────────────
+  // Mantém refs sincronizados
+  useEffect(() => { itemsRef.current = items; }, [items]);
+  useEffect(() => { userIdRef.current = userId; }, [userId]);
+  useEffect(() => { cartIdRef.current = cartId; }, [cartId]);
+
+  // ── Sync localStorage a cada mudança de items ──────────
+  // Usa ref para debounce leve — evita writes excessivos em loops rápidos
+  const lsTimerRef = useRef(null);
+  useEffect(() => {
+    if (lsTimerRef.current) clearTimeout(lsTimerRef.current);
+    lsTimerRef.current = setTimeout(() => writeLS(items), 50);
+    return () => { if (lsTimerRef.current) clearTimeout(lsTimerRef.current); };
+  }, [items]);
+
+  // ── Observa sessão ────────────────────────────────────
   useEffect(() => {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       const uid = session?.user?.id ?? null;
+      const prevUserId = userIdRef.current;
 
-      if (uid && uid !== userId) {
-        // Different user logging in — capture current local items for merge,
-        // then immediately clear state so stale items from previous user don't bleed through
-        pendingLocalItems.current = userId === null ? [...items].filter(i => i.quantity > 0) : [];
-        setItems([]);   // ← clear immediately on user switch
-        setCartId(null);
+      if (uid && uid !== prevUserId) {
+        // Logando — captura itens locais (do localStorage) para merge
+        pendingLocalItems.current = [...itemsRef.current].filter(i => i.quantity > 0);
       }
 
-      if (!uid) {
-        // Logged out — wipe everything
-        setItems([]);
+      if (!uid && prevUserId) {
+        // Deslogou — limpa state mas MANTÉM localStorage
+        // (assim quando logar de novo, faz merge)
         setCartId(null);
-        pendingLocalItems.current = [];
         mergeInProgress.current = false;
+        // Não limpa items — se quiser limpar ao deslogar, descomente:
+        // setItems([]); clearLS();
       }
 
       setUserId(uid);
     });
     return () => subscription.unsubscribe();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId, items]);
+  }, []);
 
-  // ── Carrega/merge carrinho ao logar ──────────
+  // ── Carrega/merge carrinho ao logar ───────────────────
   useEffect(() => {
     if (userId) {
       loadAndMergeCart(userId);
     } else {
-      // deslogou → já limpo no onAuthStateChange acima
       mergeInProgress.current = false;
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -75,55 +113,7 @@ export function CartProvider({ children }) {
 
     try {
       // 1. Busca/cria cart ativo no banco
-      let { data: existingCarts } = await supabase
-        .from('carts')
-        .select('id')
-        .eq('user_id', uid)
-        .eq('status', 'active')
-        .order('created_at', { ascending: false })
-        .limit(1);
-
-      let cid;
-      if (existingCarts && existingCarts.length > 0) {
-        cid = existingCarts[0].id;
-      } else {
-        // Before inserting, remove any old converted carts for this user
-        // to avoid unique constraint violation on (user_id, status)
-        await supabase
-          .from('carts')
-          .delete()
-          .eq('user_id', uid)
-          .eq('status', 'converted');
-
-        const { data: newCart, error } = await supabase
-          .from('carts')
-          .insert({ user_id: uid, status: 'active' })
-          .select()
-          .single();
-
-        if (error) {
-          // If race condition hit the unique constraint, just re-fetch
-          if (error.code === '23505') {
-            const { data: refetch } = await supabase
-              .from('carts')
-              .select('id')
-              .eq('user_id', uid)
-              .eq('status', 'active')
-              .limit(1)
-              .single();
-            if (refetch) {
-              cid = refetch.id;
-            } else {
-              throw new Error('Falha ao recuperar carrinho após conflito.');
-            }
-          } else {
-            throw new Error('Falha ao criar carrinho.');
-          }
-        } else {
-          cid = newCart.id;
-        }
-      }
-
+      let cid = await getOrCreateCart(uid);
       setCartId(cid);
 
       // 2. Carrega itens do banco
@@ -145,81 +135,142 @@ export function CartProvider({ children }) {
       const localItems = pendingLocalItems.current;
       pendingLocalItems.current = [];
 
-      // 3. Merge: se não há itens locais pendentes, usa apenas o banco
-      if (localItems.length === 0) {
-        setItems(dbItems);
-        return;
-      }
+      // 3. Merge inteligente
+      const merged = mergeItems(dbItems, localItems);
 
-      // Merge real: soma quantidades p/ produtos iguais, mantém itens únicos
-      const merged = [...dbItems];
-      for (const local of localItems) {
-        const idx = merged.findIndex(m => m.id === local.id);
-        if (idx >= 0) {
-          merged[idx] = { ...merged[idx], quantity: merged[idx].quantity + local.quantity };
-        } else {
-          merged.push(local);
-        }
-      }
-
+      // 4. Atualiza state + localStorage
       setItems(merged);
 
-      // 4. Persiste o merge no banco (upsert atômico)
-      const upsertPayload = merged.map(item => ({
-        cart_id:    cid,
-        product_id: item.id,
-        quantity:   item.quantity,
-        unit_price: item.price,
-      }));
+      // 5. Persiste merge no banco (se houve itens locais para mergear)
+      if (localItems.length > 0 && merged.length > 0) {
+        const upsertPayload = merged.map(item => ({
+          cart_id:    cid,
+          product_id: item.id,
+          quantity:   item.quantity,
+          unit_price: item.price,
+        }));
 
-      const { error: upsertErr } = await supabase
-        .from('cart_items')
-        .upsert(upsertPayload, { onConflict: 'cart_id,product_id', ignoreDuplicates: false });
+        const { error: upsertErr } = await supabase
+          .from('cart_items')
+          .upsert(upsertPayload, { onConflict: 'cart_id,product_id', ignoreDuplicates: false });
 
-      if (upsertErr) {
-        console.warn('[CartContext] merge upsert failed:', upsertErr.message);
-        setSyncFailure(true); // notifica UI, mas não reverte visualmente
+        if (upsertErr) {
+          console.warn('[Cart] merge upsert failed:', upsertErr.message);
+          setSyncFailure(true);
+        }
       }
-
     } catch (err) {
-      console.warn('[CartContext] loadAndMergeCart error:', err.message);
+      console.warn('[Cart] loadAndMergeCart error:', err.message);
       setSyncFailure(true);
+      // Em caso de falha no banco, mantém os itens do localStorage
+      // (que já estavam no state desde o início)
     } finally {
       mergeInProgress.current = false;
     }
   }
 
-  // ── Helpers de sync ──────────────────────────
+  async function getOrCreateCart(uid) {
+    // Tenta buscar cart ativo
+    let { data: existing } = await supabase
+      .from('carts')
+      .select('id')
+      .eq('user_id', uid)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .limit(1);
 
-  async function upsertCartItem(productId, quantity, unitPrice) {
-    if (!cartId) return;
+    if (existing && existing.length > 0) return existing[0].id;
+
+    // Limpa carts converted antigos
     await supabase
+      .from('carts')
+      .delete()
+      .eq('user_id', uid)
+      .eq('status', 'converted');
+
+    // Cria novo
+    const { data: newCart, error } = await supabase
+      .from('carts')
+      .insert({ user_id: uid, status: 'active' })
+      .select()
+      .single();
+
+    if (error) {
+      if (error.code === '23505') {
+        // Race condition — busca de novo
+        const { data: refetch } = await supabase
+          .from('carts')
+          .select('id')
+          .eq('user_id', uid)
+          .eq('status', 'active')
+          .limit(1)
+          .single();
+        if (refetch) return refetch.id;
+      }
+      throw new Error('Falha ao criar carrinho.');
+    }
+    return newCart.id;
+  }
+
+  // ── Merge inteligente: banco + local ──────────────────
+  function mergeItems(dbItems, localItems) {
+    if (localItems.length === 0) return dbItems;
+    if (dbItems.length === 0) return localItems;
+
+    const merged = [...dbItems];
+    for (const local of localItems) {
+      const idx = merged.findIndex(m => m.id === local.id);
+      if (idx >= 0) {
+        // Mesmo produto: usa a maior quantidade (evita perda de adições)
+        merged[idx] = {
+          ...merged[idx],
+          quantity: Math.max(merged[idx].quantity, local.quantity),
+        };
+      } else {
+        merged.push(local);
+      }
+    }
+    return merged;
+  }
+
+  // ── Helpers de sync com banco (fire-and-forget) ───────
+
+  function syncUpsert(productId, quantity, unitPrice) {
+    const cid = cartIdRef.current;
+    if (!cid) return;
+    supabase
       .from('cart_items')
       .upsert(
-        { cart_id: cartId, product_id: productId, quantity, unit_price: unitPrice },
+        { cart_id: cid, product_id: productId, quantity, unit_price: unitPrice },
         { onConflict: 'cart_id,product_id', ignoreDuplicates: false }
-      );
+      )
+      .then(({ error }) => {
+        if (error) console.warn('[Cart] sync upsert failed:', error.message);
+      });
   }
 
-  async function deleteCartItem(productId) {
-    if (!cartId) return;
-    await supabase
+  function syncDelete(productId) {
+    const cid = cartIdRef.current;
+    if (!cid) return;
+    supabase
       .from('cart_items')
       .delete()
-      .eq('cart_id', cartId)
-      .eq('product_id', productId);
+      .eq('cart_id', cid)
+      .eq('product_id', productId)
+      .then(({ error }) => {
+        if (error) console.warn('[Cart] sync delete failed:', error.message);
+      });
   }
 
-  async function clearCartInDB() {
-    if (!cartId) return;
-    await supabase.from('cart_items').delete().eq('cart_id', cartId);
-    // Delete the cart entirely instead of setting 'converted'
-    // This avoids unique constraint issues when creating a new active cart later
-    await supabase.from('carts').delete().eq('id', cartId);
+  async function syncClearAll() {
+    const cid = cartIdRef.current;
+    if (!cid) return;
+    await supabase.from('cart_items').delete().eq('cart_id', cid);
+    await supabase.from('carts').delete().eq('id', cid);
     setCartId(null);
   }
 
-  // ── Actions ──────────────────────────────────
+  // ── Actions ───────────────────────────────────────────
 
   const addItem = useCallback((product) => {
     setItems((prev) => {
@@ -233,22 +284,22 @@ export function CartProvider({ children }) {
         next = [...prev, { ...product, quantity: 1 }];
       }
       const newQty = existing ? existing.quantity + 1 : 1;
-      upsertCartItem(product.id, newQty, product.price);
+      syncUpsert(product.id, newQty, product.price);
       return next;
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartId]);
+  }, []);
 
   const removeItem = useCallback((productId) => {
     setItems((prev) => prev.filter((item) => item.id !== productId));
-    deleteCartItem(productId);
+    syncDelete(productId);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartId]);
+  }, []);
 
   const updateQuantity = useCallback((productId, quantity) => {
     if (quantity <= 0) {
       setItems((prev) => prev.filter((item) => item.id !== productId));
-      deleteCartItem(productId);
+      syncDelete(productId);
       return;
     }
     setItems((prev) => {
@@ -256,17 +307,18 @@ export function CartProvider({ children }) {
         item.id === productId ? { ...item, quantity } : item
       );
       const item = prev.find((i) => i.id === productId);
-      if (item) upsertCartItem(productId, quantity, item.price);
+      if (item) syncUpsert(productId, quantity, item.price);
       return next;
     });
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartId]);
+  }, []);
 
   const clearCart = useCallback(() => {
     setItems([]);
-    clearCartInDB();
+    clearLS();
+    syncClearAll();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [cartId]);
+  }, []);
 
   const dismissSyncFailure = useCallback(() => setSyncFailure(false), []);
 

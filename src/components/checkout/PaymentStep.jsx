@@ -1,4 +1,5 @@
 import { useCheckout } from '../../context/CheckoutContext';
+import FreeShippingBanner from './FreeShippingBanner';
 
 function PixIcon({ active }) {
   const c = active ? '#00b4d8' : '#94a3b8';
@@ -60,6 +61,7 @@ export default function PaymentStep({ payment, setPayment }) {
 
   return (
     <div className="co-step-wrapper">
+      <FreeShippingBanner />
       <div className="co-card" style={{ padding: '24px 20px' }}>
 
         {/* Header */}

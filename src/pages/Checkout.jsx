@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
@@ -242,8 +242,12 @@ function CheckoutFlow() {
   const [payError,    setPayError]    = useState(null); // { message, orderId, orderNumber, total }
   const [showAuth,    setShowAuth]    = useState(false);
 
-  /* Guards */
-  useEffect(() => { if (items.length === 0) navigate('/loja'); }, [items, navigate]);
+  const orderPlaced = useRef(false);
+
+  /* Guards — don't redirect if we just placed an order */
+  useEffect(() => {
+    if (items.length === 0 && !orderPlaced.current) navigate('/loja');
+  }, [items, navigate]);
 
   const stepIdx = STEP_ORDER.indexOf(step);
 
@@ -298,7 +302,7 @@ function CheckoutFlow() {
     );
   }
 
-  async function placeOrder({ discount = 0, shipping = 4, couponCode = null, couponId = null } = {}) {
+  async function placeOrder({ discount = 0, shipping = 4, couponCode = null, couponId = null, testMode = false } = {}) {
 
     if (!user) { setError('Você precisa estar logado para finalizar o pedido.'); return; }
     if (items.length === 0) { setError('Seu carrinho está vazio.'); return; }
@@ -373,11 +377,45 @@ function CheckoutFlow() {
       unit_price: i.price,
     }));
 
-    // 5. Limpar carrinho imediatamente (pedido já salvo)
+    // 5. Modo teste: pula MP e marca como pago direto
+    if (testMode) {
+      console.log('[TestMode] ▶ STARTING test mode for order:', order.id);
+      
+      const { data: updateData, error: testErr } = await supabase.from('orders').update({
+        payment_status:  'approved',
+        payment_id:      'TEST_' + Date.now(),
+        paid_at:         new Date().toISOString(),
+      }).eq('id', order.id).select();
+
+      console.log('[TestMode] ▶ Update result:', { updateData, testErr });
+
+      if (testErr) {
+        console.error('[TestMode] ❌ update failed:', testErr.message, testErr);
+      } else {
+        console.log('[TestMode] ✅ Order updated successfully');
+      }
+
+      console.log('[TestMode] ▶ Clearing cart...');
+      orderPlaced.current = true;
+      clearCart();
+      
+      console.log('[TestMode] ▶ Setting saving=false, redirecting=false...');
+      setSaving(false);
+      setRedirecting(false);
+      
+      const targetUrl = `/pedido/${order.id}?mp_status=approved`;
+      console.log('[TestMode] ▶ Navigating to:', targetUrl);
+      navigate(targetUrl);
+      console.log('[TestMode] ▶ navigate() called');
+      return;
+    }
+
+    // 6. Limpar carrinho (pedido já salvo)
+    orderPlaced.current = true;
     clearCart();
     setSaving(false);
 
-    // 6. Redirecionar para Mercado Pago
+    // 7. Redirecionar para Mercado Pago
     await openMercadoPago({ order, total, itemsSnapshot, shipping: shippingApplied });
   }
 

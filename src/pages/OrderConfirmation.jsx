@@ -175,7 +175,7 @@ function PaymentStatusBlock({ order, polling, onRetry, retrying, retryError }) {
       )}
 
       {/* Payment ID for reference */}
-      {order.payment_id && (
+      {order.payment_id && !order.payment_id.startsWith('TEST_') && (
         <p style={{ fontSize: '0.75rem', color: '#cbd5e1', margin: 0 }}>
           ID: {order.payment_id}
         </p>
@@ -213,6 +213,7 @@ export default function OrderConfirmation() {
   const [polling,    setPolling]    = useState(false);
   const [retrying,   setRetrying]   = useState(false);
   const [retryError, setRetryError] = useState(null);
+  const [refreshing, setRefreshing] = useState(false);
 
   const pollRef   = useRef(null);
   const pollCount = useRef(0);
@@ -235,6 +236,32 @@ export default function OrderConfirmation() {
 
   // Initial load
   useEffect(() => { loadOrder(); }, [loadOrder]);
+
+  // ── Realtime: auto-update when admin changes status ──
+  useEffect(() => {
+    if (!id || !user) return;
+
+    const channel = supabase
+      .channel(`order-${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'orders',
+          filter: `id=eq.${id}`,
+        },
+        (payload) => {
+          console.log('[Realtime] Order updated:', payload.new.status, payload.new.payment_status);
+          setOrder((prev) => prev ? { ...prev, ...payload.new } : prev);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [id, user]);
 
   // Polling quando volta do MP com status não-aprovado
   useEffect(() => {
@@ -364,7 +391,38 @@ export default function OrderConfirmation() {
         {/* ── Bloco 3: Pipeline de status ───────── */}
         {!isCancelled && (
           <div className="oc-status-block">
-            <p className="oc-section-label">Acompanhamento</p>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <p className="oc-section-label" style={{ marginBottom: 0 }}>Acompanhamento</p>
+              <button
+                type="button"
+                onClick={async () => {
+                  setRefreshing(true);
+                  await loadOrder();
+                  setTimeout(() => setRefreshing(false), 600);
+                }}
+                disabled={refreshing}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 5,
+                  background: 'none', border: '1px solid #e5e7eb',
+                  borderRadius: 8, padding: '5px 10px',
+                  fontSize: '0.72rem', fontWeight: 600,
+                  color: '#64748b', cursor: 'pointer',
+                  fontFamily: 'inherit',
+                  transition: 'all 0.15s',
+                  marginBottom: 16,
+                }}
+              >
+                <Icon
+                  name="refresh"
+                  size={13}
+                  style={{
+                    transition: 'transform 0.4s',
+                    transform: refreshing ? 'rotate(360deg)' : 'none',
+                  }}
+                />
+                {refreshing ? 'Atualizando...' : 'Atualizar'}
+              </button>
+            </div>
             {STATUS_PIPELINE.map((s, i) => {
               const isDone    = i < statusIdx;
               const isActive  = i === statusIdx;

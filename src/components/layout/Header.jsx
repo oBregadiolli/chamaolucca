@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useCart } from '../../context/CartContext';
 import Icon from '../ui/Icon';
+import logoBylucca from '../../assets/logobylucca.png';
 import fotoLaranja from '../../assets/fotoLaranja.png';
 import HowToGetDialog from '../ui/HowToGetDialog';
 
@@ -28,14 +29,11 @@ export default function Header({ onOpenAuth }) {
               alt=""
               style={{ height: 40, width: 'auto', display: 'block', borderRadius: 8 }}
             />
-            <span style={{
-              fontFamily: "'Pacifico', cursive",
-              fontSize: '1.4rem',
-              color: '#16a34a',
-              fontWeight: 400,
-            }}>
-              Lucca
-            </span>
+            <img
+              src={logoBylucca}
+              alt="Lucca Mercado"
+              style={{ width: 48, height: 20, display: 'block', objectFit: 'contain' }}
+            />
           </Link>
 
           <div className="header-actions">

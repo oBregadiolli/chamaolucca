@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useMemo } from 'react';
 import { useCheckout } from '../../context/CheckoutContext';
 import { useCart } from '../../context/CartContext';
 import { useStore } from '../../context/StoreContext';
@@ -40,6 +40,12 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
   const [discount,     setDiscount]     = useState(0);
   const [couponData,   setCouponData]   = useState(null); // full coupon row
   const [validating,   setValidating]   = useState(false);
+  const [testMode,     setTestMode]     = useState(false);
+
+  const isLocal = useMemo(() => {
+    const h = window.location.hostname;
+    return h === 'localhost' || h === '127.0.0.1';
+  }, []);
 
   const shipping = calcShipping(subtotal - discount);
   const total    = Math.max(0, subtotal - discount + shipping);
@@ -279,6 +285,51 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
           </div>
         </div>
 
+        {/* Dev test toggle — localhost only */}
+        {isLocal && (
+          <div style={{
+            display: 'flex', alignItems: 'center', justifyContent: 'center',
+            gap: 10, margin: '4px 0 0',
+            padding: '8px 14px',
+            background: testMode ? '#fef3c7' : '#f8fafc',
+            border: `1.5px dashed ${testMode ? '#f59e0b' : '#e2e8f0'}`,
+            borderRadius: 10,
+            transition: 'all 0.2s ease',
+          }}>
+            <span style={{ fontSize: '0.78rem', color: testMode ? '#92400e' : '#94a3b8', fontWeight: 600 }}>
+              🧪 TESTE
+            </span>
+            <button
+              type="button"
+              onClick={() => setTestMode(!testMode)}
+              style={{
+                position: 'relative',
+                width: 40, height: 22,
+                borderRadius: 11,
+                border: 'none',
+                background: testMode ? '#f59e0b' : '#cbd5e1',
+                cursor: 'pointer',
+                transition: 'background 0.2s ease',
+                padding: 0,
+              }}
+              aria-label={testMode ? 'Desativar modo teste' : 'Ativar modo teste'}
+            >
+              <span style={{
+                position: 'absolute',
+                top: 2, left: testMode ? 20 : 2,
+                width: 18, height: 18,
+                borderRadius: '50%',
+                background: '#fff',
+                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
+                transition: 'left 0.2s ease',
+              }} />
+            </button>
+            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+              {testMode ? 'Pula MP, marca como pago' : 'Pagamento real'}
+            </span>
+          </div>
+        )}
+
         {/* Actions */}
         <div className="co-actions">
           <button
@@ -296,6 +347,7 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
               shipping,
               couponCode: couponData?.code ?? null,
               couponId:   couponData?.id   ?? null,
+              testMode,
             })}
             disabled={saving}
             type="button"

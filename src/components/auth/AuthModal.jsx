@@ -76,23 +76,36 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
         setSuccess('Email de recuperação enviado! Verifique sua caixa de entrada.');
       }
     } catch (err) {
-      const messages = {
-        'Invalid login credentials':                     'Email ou senha incorretos.',
-        'User already registered':                       'Este email já está cadastrado.',
-        'Password should be at least 6 characters':      'A senha deve ter pelo menos 6 caracteres.',
-        'Email not confirmed':                           'Confirme seu email antes de entrar.',
-        'Unable to validate email address: invalid format': 'Formato de email inválido.',
-        'Signup requires a valid password':               'Informe uma senha válida.',
-        'Email rate limit exceeded':                     'Muitas tentativas. Aguarde um momento antes de tentar novamente.',
-        'For security purposes, you can only request this after 60 seconds': 'Aguarde 60 segundos para tentar novamente.',
-        'User not found':                                'Nenhuma conta encontrada com este email.',
-      };
-      const friendly = messages[err.message]
-        || (err.message?.includes('rate') ? 'Muitas tentativas. Tente novamente em instantes.' : null)
-        || (err.message?.includes('network') ? 'Sem conexão. Verifique sua internet.' : null)
-        || err.message
-        || 'Erro inesperado. Tente novamente.';
-      setError(friendly);
+      const msg = (err.message || '').toLowerCase();
+
+      // Mapa de traduções: chave é substring (lowercase) da mensagem do Supabase
+      const translations = [
+        ['invalid login credentials',             'Email ou senha incorretos.'],
+        ['user already registered',                'Este email já está cadastrado.'],
+        ['password should be at least 6',          'A senha deve ter pelo menos 6 caracteres.'],
+        ['email not confirmed',                    'Confirme seu email antes de entrar.'],
+        ['unable to validate email',               'Formato de email inválido.'],
+        ['signup requires a valid password',        'Informe uma senha válida.'],
+        ['email rate limit exceeded',              'Muitas tentativas. Aguarde um momento.'],
+        ['request this after',                     'Aguarde alguns segundos para tentar novamente.'],
+        ['user not found',                         'Nenhuma conta encontrada com este email.'],
+        ['rate',                                   'Muitas tentativas. Tente novamente em instantes.'],
+        ['network',                                'Sem conexão. Verifique sua internet.'],
+        ['fetch',                                  'Erro de conexão. Verifique sua internet.'],
+        ['already been registered',                'Este email já está cadastrado.'],
+        ['provide.*email',                         'Informe um email válido.'],
+        ['weak_password',                          'A senha deve ter pelo menos 6 caracteres.'],
+      ];
+
+      let friendly = null;
+      for (const [key, translated] of translations) {
+        if (msg.includes(key)) {
+          friendly = translated;
+          break;
+        }
+      }
+
+      setError(friendly || 'Erro inesperado. Tente novamente.');
     } finally {
       setLoading(false);
     }
