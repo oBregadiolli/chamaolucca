@@ -35,6 +35,10 @@
   letter-spacing: -0.5px;
 }
 
+/* Desktop: mostra texto desktop, esconde mobile */
+.lp-hero-headline-mobile  { display: none; }
+.lp-hero-headline-desktop { display: block; }
+
 .lp-hero-subtitle {
   font-size: 0.875rem;
   color: rgba(255,255,255,0.92);
@@ -144,9 +148,10 @@
   justify-content: center;
 }
 
-.benefit-icon-svg {
+.benefit-icon-img {
   width: 120px;
   height: 120px;
+  object-fit: contain;
 }
 
 .lp-benefit-title {
@@ -216,103 +221,18 @@
   font-weight: 800;
 }
 
-/* Phone mockup */
+/* Phone image */
 .lp-dark-visual {
   display: flex;
   justify-content: center;
   align-items: center;
 }
 
-.phone-frame {
-  background: #1a1a1a;
-  border: 3px solid #333;
-  border-radius: 36px;
-  width: 220px;
-  height: 440px;
-  overflow: hidden;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.6), inset 0 0 0 1px #444;
-  position: relative;
-}
-
-.phone-notch {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 80px;
-  height: 20px;
-  background: #1a1a1a;
-  border-bottom-left-radius: 12px;
-  border-bottom-right-radius: 12px;
-  z-index: 10;
-}
-
-.phone-screen {
-  background: #fff;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  padding-top: 28px;
-  overflow: hidden;
-}
-
-.app-screen-header {
-  background: #22c55e;
-  padding: 14px 16px;
-}
-
-.app-screen-logo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.app-brand {
-  font-size: 0.62rem;
-  font-weight: 900;
-  color: #fff;
-  letter-spacing: 0.05em;
-}
-
-.app-screen-body {
-  flex: 1;
-  padding: 14px 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-  background: #f9fafb;
-}
-
-.app-screen-item {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  background: #fff;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
-  padding: 10px 12px;
-}
-
-.app-screen-item-dot {
-  width: 8px;
-  height: 8px;
-  background: #22c55e;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.app-screen-item-label {
-  font-size: 0.52rem;
-  font-weight: 800;
-  color: #111;
-  letter-spacing: 0.04em;
-}
-
-.app-screen-item-sub {
-  font-size: 0.48rem;
-  color: #9ca3af;
-  margin-top: 1px;
+.lp-dark-phone-img {
+  max-height: 420px;
+  width: auto;
+  object-fit: contain;
+  filter: drop-shadow(0 24px 48px rgba(0,0,0,0.5));
 }
 
 /* ---- Categories ---- */
@@ -338,13 +258,45 @@
   margin-bottom: 36px;
 }
 
-.lp-categories-row {
+/* Carousel wrapper */
+.lp-categories-carousel {
   display: flex;
+  align-items: center;
   gap: 8px;
-  overflow-x: auto;
+}
+
+.lp-cat-arrow {
+  flex-shrink: 0;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  border: 1.5px solid #e5e7eb;
+  background: #fff;
+  color: #111;
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
   justify-content: center;
-  flex-wrap: wrap;
+  transition: background 150ms ease, border-color 150ms ease, transform 150ms ease;
+  user-select: none;
+}
+
+.lp-cat-arrow:hover {
+  background: #f3f4f6;
+  border-color: #d1d5db;
+  transform: scale(1.08);
+}
+
+.lp-categories-row {
+  flex: 1;
+  display: flex;
+  gap: 12px;
+  overflow-x: auto;
+  flex-wrap: nowrap;
   scrollbar-width: none;
+  scroll-behavior: smooth;
 }
 
 .lp-categories-row::-webkit-scrollbar {
@@ -370,11 +322,16 @@
   width: 68px;
   height: 68px;
   border-radius: 50%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 2rem;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+  overflow: hidden;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.10);
+  flex-shrink: 0;
+}
+
+.lp-category-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
 }
 
 .lp-category-label {
@@ -441,56 +398,60 @@
 
 .lp-footer-inner {
   display: flex;
-  align-items: center;
+  align-items: stretch;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 24px;
   max-width: 1200px;
   margin: 0 auto;
+  min-height: 120px;
 }
 
+/* Esquerda */
 .lp-footer-brand {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-}
-
-.lp-footer-logo-row {
-  display: flex;
-  align-items: center;
+  justify-content: center;
   gap: 8px;
 }
 
-.lp-footer-wordmark {
-  font-size: 2rem;
-  font-weight: 900;
-  color: #111;
-  letter-spacing: -1px;
+.lp-footer-logo-img {
+  height: 44px;
+  width: auto;
+  display: block;
 }
 
 .lp-footer-tagline {
-  font-size: 0.72rem;
-  color: #9ca3af;
-  margin-left: 44px;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin: 0;
+  padding-left: 2px;
 }
 
-.lp-footer-social {
-  flex: 1;
+.lp-footer-tagline-green {
+  color: #22c55e;
+  font-weight: 700;
+}
+
+/* Direita — Instagram topo, Lucca base */
+.lp-footer-right {
   display: flex;
-  justify-content: flex-end;
+  flex-direction: column;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
 }
 
 .lp-footer-insta {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 42px;
-  height: 42px;
+  width: 40px;
+  height: 40px;
   border-radius: 50%;
   background: #111;
   color: #fff;
   transition: transform 150ms ease;
   text-decoration: none;
+  flex-shrink: 0;
 }
 
 .lp-footer-insta:hover {
@@ -498,20 +459,14 @@
   color: #fff;
 }
 
-.lp-footer-signature {
-  display: flex;
-  align-items: flex-end;
-}
-
 .lp-footer-sig-text {
-  font-family: "Georgia", serif;
-  font-size: 1.5rem;
+  font-family: "Georgia", "Times New Roman", serif;
+  font-size: 1.6rem;
   font-style: italic;
   font-weight: 700;
   color: #111;
-  border-bottom: 2px solid #111;
-  padding-bottom: 2px;
   letter-spacing: -0.5px;
+  line-height: 1;
 }
 
 /* ============================================
@@ -524,31 +479,59 @@
 
   .lp-hero-inner {
     grid-template-columns: 1fr;
-    border-radius: 20px;
+    border-radius: 24px;
     min-height: unset;
   }
 
   .lp-hero-text {
-    padding: 36px 24px 20px;
-    text-align: center;
+    padding: 40px 28px 44px;
+    text-align: left;
   }
+
+  .lp-hero-headline {
+    font-size: 2rem;
+    margin-bottom: 20px;
+  }
+
+  /* Mobile: troca o texto do headline */
+  .lp-hero-headline-mobile  { display: block; }
+  .lp-hero-headline-desktop { display: none; }
 
   .lp-hero-subtitle {
     max-width: 100%;
+    margin-bottom: 36px;
   }
 
-  .lp-hero-visual {
+  .lp-hero-cta {
+    width: 100%;
     justify-content: center;
+    font-size: 0.85rem;
+    padding: 18px 24px;
   }
 
-  .hero-mascot-svg {
-    max-width: 260px;
-    transform: translateY(4px);
+  /* Oculta o mascote no mobile */
+  .lp-hero-visual {
+    display: none;
   }
 
   .lp-benefits-grid {
     grid-template-columns: 1fr;
     gap: 8px;
+  }
+
+  .benefit-icon-img {
+    width: 160px;
+    height: 160px;
+  }
+
+  .lp-benefit-title {
+    font-size: 1.25rem;
+    margin-bottom: 14px;
+  }
+
+  .lp-benefit-text {
+    font-size: 0.9rem;
+    max-width: 260px;
   }
 
   .lp-dark-inner {
@@ -572,22 +555,35 @@
   }
 
   .lp-categories-card {
-    padding: 24px 16px;
+    padding: 24px 12px;
   }
 
   .lp-categories-row {
     justify-content: flex-start;
     flex-wrap: nowrap;
-    padding-bottom: 8px;
   }
 
+  .lp-cat-arrow {
+    display: none;
+  }
+
+  /* Footer mobile */
   .lp-footer-inner {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: center;
+    text-align: center;
+    gap: 20px;
   }
 
-  .lp-footer-social {
-    justify-content: flex-start;
+  .lp-footer-brand {
+    align-items: center;
+  }
+
+  .lp-footer-right {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
   }
 }
 

@@ -1,23 +1,22 @@
-import logobylucca from '../../assets/logobylucca.png';
+import bemvindoLogo from '../../assets/imagensNovas/BEMVINDO.png';
 
 export default function Footer() {
   return (
     <footer className="lp-footer">
       <div className="lp-footer-inner container">
-        {/* Logo */}
+
+        {/* Esquerda — Logo + tagline */}
         <div className="lp-footer-brand">
-          <div className="lp-footer-logo-row">
-            <img
-              src={logobylucca}
-              alt="ChamaoLucca"
-              style={{ height: 40, width: 'auto', display: 'block' }}
-            />
-          </div>
+          <img
+            src={bemvindoLogo}
+            alt="Lucca Mercado"
+            className="lp-footer-logo-img"
+          />
           <p className="lp-footer-tagline">Bem vindo ao Lucca Mercado</p>
         </div>
 
-        {/* Instagram */}
-        <div className="lp-footer-social">
+        {/* Direita — Instagram (topo) + Assinatura Lucca (base) */}
+        <div className="lp-footer-right">
           <a
             href="https://instagram.com"
             target="_blank"
@@ -25,23 +24,16 @@ export default function Footer() {
             className="lp-footer-insta"
             aria-label="Instagram do ChamaoLucca"
           >
-            {/* Instagram icon */}
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="22" height="22" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="20" height="20" aria-hidden="true">
               <rect x="2" y="2" width="20" height="20" rx="5"/>
               <circle cx="12" cy="12" r="4"/>
               <circle cx="17.5" cy="6.5" r="1.5" fill="currentColor" stroke="none"/>
             </svg>
           </a>
+
+          <p className="lp-footer-sig-text">Lucca</p>
         </div>
 
-        {/* Assinatura Lucca */}
-        <div className="lp-footer-signature">
-          <img
-            src={logobylucca}
-            alt="Lucca"
-            style={{ height: 28, width: 'auto', display: 'block', opacity: 0.6 }}
-          />
-        </div>
       </div>
     </footer>
   );

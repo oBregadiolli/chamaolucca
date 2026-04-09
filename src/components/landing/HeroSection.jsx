@@ -53,8 +53,8 @@ export default function HeroSection({ onOpenAuth }) {
         {/* Coluna esquerda — texto + CTA */}
         <div className="lp-hero-text">
           <h1 className="lp-hero-headline">
-            Pensou em mercado?<br />
-            Chama o Lucca ッ
+            <span className="lp-hero-headline-mobile">Aqui você compra sem ir ao mercado ッ</span>
+            <span className="lp-hero-headline-desktop">Pensou em mercado?<br />Chama o Lucca ッ</span>
           </h1>
           <p className="lp-hero-subtitle">
             Seu supermercado online: Nada de filas, nem trânsito ou de sair do conforto
