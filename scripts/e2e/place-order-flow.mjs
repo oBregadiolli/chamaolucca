@@ -67,6 +67,7 @@ r.ok('D2 Itens no carrinho', `${products.length} produtos x4`);
 
 const delivery_data = {
   address: 'Rua Teste E2E, 100',
+  city: 'Alagoinhas',
   neighborhood: 'Centro',
   phone: '75988887777',
   zip_code: '48000-000',
@@ -84,6 +85,7 @@ const placeRes = await fetch(`${URL}/functions/v1/place-order`, {
     coupon_code: null,
     delivery_data,
     payment_method: 'pix',
+    test_mode: true,
   }),
 });
 const place = await placeRes.json();
@@ -143,6 +145,7 @@ if (cart2?.id) {
       coupon_code: 'BEMVINDO10',
       delivery_data,
       payment_method: 'pix',
+      test_mode: true,
     }),
   });
   const couponData = await couponPlace.json();

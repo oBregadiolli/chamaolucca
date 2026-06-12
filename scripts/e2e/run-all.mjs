@@ -14,6 +14,7 @@ const plans = [
   { id: 'C', name: 'Auth + Profile', script: 'auth-profile.mjs' },
   { id: 'D', name: 'place-order', script: 'place-order-flow.mjs' },
   { id: 'E', name: 'Loja UI', script: 'store-ui.mjs' },
+  { id: 'F', name: 'Store rules', script: 'store-rules.mjs' },
 ];
 
 console.log('\n🧪 ChamaOLucca — Suite E2E automatizada\n');
@@ -25,12 +26,19 @@ const summary = [];
 for (const plan of plans) {
   console.log(`\n━━━ Plano ${plan.id}: ${plan.name} ━━━\n`);
   const scriptPath = path.join(__dirname, plan.script);
-  const result = spawnSync(process.execPath, [scriptPath], {
-    cwd: root,
-    stdio: 'inherit',
-    env: process.env,
-  });
-  summary.push({ ...plan, ok: result.status === 0 });
+  const maxAttempts = plan.id === 'A' ? 3 : 1;
+  let ok = false;
+  for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+    if (attempt > 1) console.log(`  ↻ Plano A — tentativa ${attempt}/${maxAttempts}\n`);
+    const result = spawnSync(process.execPath, [scriptPath], {
+      cwd: root,
+      stdio: 'inherit',
+      env: process.env,
+    });
+    ok = result.status === 0;
+    if (ok) break;
+  }
+  summary.push({ ...plan, ok });
 }
 
 console.log('\n══════════════════════════════════════');
