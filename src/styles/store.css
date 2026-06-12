@@ -246,13 +246,30 @@
    Combo Card
    ============================================ */
 .combo-scroll {
+  position: relative;
   display: flex;
   gap: 12px;
   overflow-x: auto;
   padding-bottom: 4px;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(22, 163, 74, 0.35) transparent;
 }
-.combo-scroll::-webkit-scrollbar { display: none; }
+.combo-scroll::-webkit-scrollbar { height: 4px; }
+.combo-scroll::-webkit-scrollbar-thumb {
+  background: rgba(22, 163, 74, 0.35);
+  border-radius: 999px;
+}
+@media (max-width: 768px) {
+  .combo-scroll::after {
+    content: '';
+    position: sticky;
+    right: 0;
+    flex: 0 0 28px;
+    margin-left: -28px;
+    pointer-events: none;
+    background: linear-gradient(to left, rgba(248, 250, 252, 0.95), transparent);
+  }
+}
 
 .combo-card {
   background: #fff;

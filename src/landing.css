@@ -295,12 +295,30 @@
   gap: 12px;
   overflow-x: auto;
   flex-wrap: nowrap;
-  scrollbar-width: none;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(22, 163, 74, 0.35) transparent;
   scroll-behavior: smooth;
 }
 
-.lp-categories-row::-webkit-scrollbar {
-  display: none;
+.lp-categories-row::-webkit-scrollbar { height: 4px; }
+.lp-categories-row::-webkit-scrollbar-thumb {
+  background: rgba(22, 163, 74, 0.35);
+  border-radius: 999px;
+}
+
+@media (max-width: 768px) {
+  .lp-categories-carousel::after {
+    content: '';
+    position: absolute;
+    right: 44px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 80%;
+    pointer-events: none;
+    background: linear-gradient(to left, rgba(255, 255, 255, 0.95), transparent);
+  }
+  .lp-categories-carousel { position: relative; }
 }
 
 .lp-category-item {
