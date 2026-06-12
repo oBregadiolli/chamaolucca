@@ -22,7 +22,7 @@ No Dashboard → Edge Functions → Secrets (ou CLI):
 | `MP_ACCESS_TOKEN` | Token produção Mercado Pago |
 | `MP_WEBHOOK_SECRET` | Secret do webhook no painel MP |
 | `GOOGLE_MAPS_API_KEY` | Chave restrita ao domínio prod |
-| `ALLOWED_ORIGINS` | `https://SEU-DOMINIO.netlify.app,http://localhost:5173` |
+| `ALLOWED_ORIGINS` | `https://chamaolucca.com.br,https://chamaolucca.netlify.app,http://localhost:5173,http://localhost:5174,http://localhost:3000` |
 | `ALLOW_TEST_ORDERS` | `false` em produção |
 
 Redeploy:
@@ -35,17 +35,19 @@ node scripts/deploy-edge-functions.mjs
 
 Dashboard → Authentication → URL Configuration:
 
-- **Site URL:** `https://SEU-DOMINIO.netlify.app`
-- **Redirect URLs:** incluir `https://SEU-DOMINIO.netlify.app/**` e `/redefinir-senha`
+- **Site URL:** `https://chamaolucca.com.br`
+- **Redirect URLs:** incluir `https://chamaolucca.com.br/**`, `/redefinir-senha`, localhost e netlify preview
+
+Ou via CLI: `npm run go-live:auth`
 
 ## 2. Netlify
 
 1. Conectar repositório GitHub
 2. Build: `npm run build` | Publish: `dist` (já em `netlify.toml`)
-3. Environment variables:
-   - `VITE_SUPABASE_URL`
-   - `VITE_SUPABASE_ANON_KEY`
-4. Deploy e validar headers (CSP) no DevTools → Network
+3. Environment variables (também definidas em `netlify.toml` `[build.environment]`):
+   - `VITE_SUPABASE_URL` = `https://wjkytzvgbvkcaqjrqsbu.supabase.co`
+   - `VITE_SUPABASE_ANON_KEY` = anon key do projeto
+4. Deploy e validar: `npm run go-live:status`
 
 ## 3. Admin e catálogo
 
