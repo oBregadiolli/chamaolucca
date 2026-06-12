@@ -12,7 +12,7 @@ Data: 11/06/2026 | Status: **MVP — hardening aplicado no código; deploy/secre
 | 04 | RLS policies | ALTO | **Resolvido** — migrations 001–003; **006** restringe UPDATE em orders |
 | 05 | CSP / security headers | ALTO | **Resolvido** — `netlify.toml` |
 | 06 | Rate limit no login | ALTO | **Resolvido** — `AuthModal.jsx` (3→30s, 5→5min) |
-| 07 | Reset senha | MÉDIO | **Resolvido** — `/redefinir-senha` + redirectTo |
+| 07 | Reset senha | MÉDIO | **Backlog BL-002** — removido do MVP; alterar senha no perfil (logado) |
 | 08 | Order items preço cliente | MÉDIO | **Resolvido** — via `place-order` |
 | 09 | Checkbox lembrar | MÉDIO | **Resolvido** — removido (U6) |
 | 10 | Admin rotas sem 404 | MÉDIO | **Resolvido** — rota `*` em `/admin/*` |
@@ -31,7 +31,7 @@ Data: 11/06/2026 | Status: **MVP — hardening aplicado no código; deploy/secre
 - **CORS:** `supabase/functions/_shared/cors.ts` — origens via `ALLOWED_ORIGINS`.
 - **Headers:** `netlify.toml` — CSP, X-Frame-Options, nosniff, Referrer-Policy.
 - **Login:** `src/components/auth/AuthModal.jsx` — bloqueio progressivo local.
-- **Legal/auth:** `/termos`, `/privacidade`, `/redefinir-senha`.
+- **Legal/auth:** `/termos`, `/privacidade`. E-mail auth → backlog BL-002.
 
 ## Pós-deploy (painéis)
 

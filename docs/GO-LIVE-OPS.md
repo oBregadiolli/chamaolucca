@@ -36,9 +36,19 @@ node scripts/deploy-edge-functions.mjs
 Dashboard → Authentication → URL Configuration:
 
 - **Site URL:** `https://chamaolucca.com.br`
-- **Redirect URLs:** incluir `https://chamaolucca.com.br/**`, `/redefinir-senha`, localhost e netlify preview
+- **Redirect URLs:** incluir `https://chamaolucca.com.br/**`, localhost e netlify preview
 
 Ou via CLI: `npm run go-live:auth`
+
+### Cadastro (sem e-mail)
+
+MVP: cadastro direto, sem confirmação por e-mail. Manter no Supabase:
+
+```bash
+npm run go-live:auth-email
+```
+
+Recuperação de senha por e-mail está no **backlog (BL-002)** — não exposta na UI.
 
 ## 2. Netlify
 

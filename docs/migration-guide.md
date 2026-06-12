@@ -51,9 +51,8 @@ Configure:
 - Site URL: https://seu-dominio.com (ou http://localhost:5173 para dev)
 - Redirect URLs (adicionar todas):
   - http://localhost:5173/**
-  - http://localhost:5173/redefinir-senha
   - https://seu-dominio.com/**
-  - https://seu-dominio.com/redefinir-senha
+  - (Recuperação de senha por e-mail: backlog BL-002 — não incluir `/redefinir-senha` no MVP)
 
 Va em Authentication > Providers:
 - Email: deixe habilitado

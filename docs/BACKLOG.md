@@ -15,6 +15,7 @@ Checkpoints técnicos (CP1–CP6): segurança → dados ops → deploy → UX/le
 | ID | Item | Status | Prioridade |
 |----|------|--------|------------|
 | **BL-001** | **Manual do cliente final (PDF)** | 📋 Backlog | Alta (comercial) |
+| **BL-002** | **Autenticação e notificações por e-mail** | 📋 Backlog | Média |
 
 ---
 
@@ -49,7 +50,7 @@ Documento PDF em português, linguagem simples, para o **cliente final** (stakeh
 | Busca e filtros na loja | ✅ Disponível | |
 | Página do produto (detalhe, preço, promo) | ✅ Disponível | |
 | Carrinho (desktop e mobile) | ✅ Disponível | Barra fixa no celular |
-| Cadastro e login | ✅ Disponível | Modal na loja/checkout |
+| Cadastro e login | ✅ Disponível | Cadastro direto, sem e-mail de confirmação |
 | Checkout — endereço com autocomplete | ✅ Disponível | Google Places |
 | Checkout — escolha de bairro/cidade | ✅ Disponível | Bairros de Alagoinhas cadastrados |
 | Checkout — agendamento (data + horário) | ✅ Disponível | Slots configuráveis no admin |
@@ -60,8 +61,9 @@ Documento PDF em português, linguagem simples, para o **cliente final** (stakeh
 | Acompanhar pedido (status + pagamento) | ✅ Disponível | Página `/pedido/:id` com atualização em tempo real |
 | Histórico de pedidos no perfil | ✅ Disponível | |
 | Endereços salvos no perfil | ✅ Disponível | |
-| Alterar senha (logado) | ✅ Disponível | |
-| Esqueci minha senha (e-mail) | ✅ Disponível | E-mail Supabase → `/redefinir-senha` |
+| Alterar senha (logado) | ✅ Disponível | Perfil → Mudar Senha |
+| Esqueci minha senha (e-mail) | 📋 **Backlog (BL-002)** | Removido do MVP; requer SMTP customizado |
+| Confirmação de cadastro por e-mail | 📋 **Backlog (BL-002)** | Desligado no Supabase (`mailer_autoconfirm`) |
 | Termos de uso e privacidade | ✅ Disponível | `/termos` e `/privacidade` |
 | App instalável (PWA) | 💡 Podemos ter | |
 | Notificações por WhatsApp/SMS do pedido | 💡 Podemos ter | |
@@ -151,10 +153,34 @@ Ideias para a seção final do PDF — **não são promessas**, são evoluções
 
 ---
 
+## BL-002 — Autenticação e notificações por e-mail
+
+### Escopo futuro (fora do MVP)
+
+- Confirmação de cadastro por e-mail
+- **Esqueci minha senha** (link por e-mail + tela `/redefinir-senha`)
+- SMTP customizado no Supabase (Resend, SendGrid, etc.)
+- Notificações transacionais por e-mail (pedido confirmado, etc.)
+
+### MVP atual
+
+- Cadastro **sem** envio de e-mail (`mailer_autoconfirm` no Supabase)
+- Alterar senha **logado** no perfil (`/perfil` → Mudar Senha)
+- Sem link “Esqueci minha senha” no login
+
+### Pré-requisitos para implementar
+
+1. SMTP customizado em Supabase → Authentication → SMTP Settings
+2. Reativar fluxos de UI removidos (`AuthModal`, `/redefinir-senha`)
+3. Testes E2E de recuperação de senha
+
+---
+
 ## Histórico
 
 | Data | Alteração |
 |------|-----------|
+| 2026-06-12 | BL-002 e-mail auth; MVP sem envio de e-mail no cadastro/recuperação |
 | 2026-06-11 | Criado backlog; BL-001 manual PDF |
 | 2026-06-11 | BL-001: matriz ✅ / 🔜 EM BREVE / 💡 podemos ter |
 | 2026-06-11 | Manual de uso completo: `docs/MANUAL-USO-CHAMAOOLUCCA.md` |

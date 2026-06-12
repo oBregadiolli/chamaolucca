@@ -126,12 +126,6 @@ for (const { label, ctx } of contexts) {
     await shot(page, `${prefix}-07-privacidade`);
   });
 
-  await runFlow(`${prefix}: Reset senha (UI)`, async () => {
-    await page.goto(`${BASE}/redefinir-senha`, { waitUntil: 'networkidle', timeout: 30000 });
-    await waitStable(page);
-    await shot(page, `${prefix}-08-reset-senha`);
-  });
-
   await runFlow(`${prefix}: 404`, async () => {
     await page.goto(`${BASE}/rota-inexistente-xyz`, { waitUntil: 'networkidle', timeout: 30000 });
     await waitStable(page);

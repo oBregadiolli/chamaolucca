@@ -8,7 +8,6 @@ const SITE_URL = 'https://chamaolucca.com.br';
 
 const REDIRECT_URLS = [
   `${SITE_URL}/**`,
-  `${SITE_URL}/redefinir-senha`,
   'http://localhost:5173/**',
   'http://localhost:5174/**',
   'http://localhost:3000/**',

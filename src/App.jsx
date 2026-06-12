@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { BrowserRouter, Routes, Route, Outlet, useOutletContext } from 'react-router-dom';
+import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Outlet, useOutletContext, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { StoreProvider } from './context/StoreContext';
@@ -17,7 +17,7 @@ import ProductDetail from './pages/ProductDetail';
 import NotFound from './pages/NotFound';
 import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
-import ResetPassword from './pages/ResetPassword';
+import LegacyPasswordResetRedirect from './pages/LegacyPasswordResetRedirect';
 
 // Admin
 import AdminGuard from './admin/AdminGuard';
@@ -36,11 +36,41 @@ import AdminGeocoding from './admin/pages/AdminGeocoding';
 
 function StorefrontLayout() {
   const [authOpen, setAuthOpen] = useState(false);
+  const [authNotice, setAuthNotice] = useState(null);
+  const location = useLocation();
+  const navigate = useNavigate();
   const openAuth = () => setAuthOpen(true);
+
+  useEffect(() => {
+    if (location.state?.authNotice) {
+      setAuthNotice(location.state.authNotice);
+      navigate(
+        { pathname: location.pathname, search: location.search },
+        { replace: true, state: {} },
+      );
+    }
+  }, [location.state, location.pathname, location.search, navigate]);
 
   return (
     <>
       <Header onOpenAuth={openAuth} />
+
+      {authNotice && (
+        <div className="container" style={{ paddingTop: 12 }}>
+          <div className="feedback-banner feedback-banner--info" role="status">
+            <span style={{ flex: 1 }}>{authNotice}</span>
+            <button
+              type="button"
+              className="auth-close"
+              onClick={() => setAuthNotice(null)}
+              aria-label="Fechar aviso"
+              style={{ position: 'static', marginLeft: 8 }}
+            >
+              ×
+            </button>
+          </div>
+        </div>
+      )}
 
       {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
 
@@ -94,7 +124,7 @@ export default function App() {
                 <Route path="/" element={<Home />} />
                 <Route path="/loja" element={<StorePage />} />
                 <Route path="/perfil" element={<Profile />} />
-                <Route path="/redefinir-senha" element={<ResetPassword />} />
+                <Route path="/redefinir-senha" element={<LegacyPasswordResetRedirect />} />
                 <Route path="/termos" element={<Terms />} />
                 <Route path="/privacidade" element={<Privacy />} />
                 <Route path="/checkout" element={<Checkout />} />

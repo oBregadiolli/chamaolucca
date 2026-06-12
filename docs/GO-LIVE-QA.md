@@ -17,7 +17,6 @@ Use após deploy Netlify e secrets configurados. Marque cada item antes de divul
 - [ ] Checkout: endereço, bairro, slot de entrega
 - [ ] Cupom válido (se configurado)
 - [ ] `/termos` e `/privacidade` abrem sem erro
-- [ ] Reset senha: e-mail → `/redefinir-senha` → nova senha → login
 
 ## Plano G — Pagamentos
 
@@ -40,6 +39,6 @@ Use após deploy Netlify e secrets configurados. Marque cada item antes de divul
 | Pix real aprovado | |
 | Cartão real aprovado | |
 | Webhook MP | |
-| Termos + privacidade + reset senha | |
+| Termos + privacidade | |
 
 **Liberado para divulgação controlada** quando todos os critérios da tabela estiverem OK.

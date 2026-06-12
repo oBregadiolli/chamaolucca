@@ -74,12 +74,6 @@ export function AuthProvider({ children }) {
     if (error) throw error;
   }
 
-  async function resetPassword(email) {
-    const redirectTo = `${window.location.origin}/redefinir-senha`;
-    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
-    if (error) throw error;
-  }
-
   const isAdmin = profile?.role === 'admin';
 
   const value = {
@@ -90,7 +84,6 @@ export function AuthProvider({ children }) {
     signUp,
     signIn,
     signOut,
-    resetPassword,
     refreshProfile: () => user && fetchProfile(user.id).then(setProfile),
   };
 

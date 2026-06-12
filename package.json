@@ -12,7 +12,8 @@
     "test:e2e:prod": "node scripts/e2e/prod-browser-e2e.mjs",
     "test:smoke": "node scripts/verify-supabase.mjs",
     "go-live:status": "node scripts/go-live-status.mjs",
-    "go-live:auth": "node scripts/configure-auth-urls.mjs"
+    "go-live:auth": "node scripts/configure-auth-urls.mjs",
+    "go-live:auth-email": "node scripts/configure-auth-email.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.100.1",

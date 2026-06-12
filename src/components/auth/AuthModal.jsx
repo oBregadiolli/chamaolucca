@@ -38,11 +38,10 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
   const [view, setView] = useState(initialView);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [blockedUntil, setBlockedUntil] = useState(() => readLoginGuard().blockedUntil || 0);
   const [now, setNow] = useState(Date.now());
 
-  const { signIn, signUp, resetPassword } = useAuth();
+  const { signIn, signUp } = useAuth();
 
   useEffect(() => {
     if (blockedUntil <= Date.now()) return undefined;
@@ -82,14 +81,12 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
   function switchView(v) {
     setView(v);
     setError('');
-    setSuccess('');
   }
 
   async function handleSubmit(e) {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setSuccess('');
 
     try {
       if (view === 'login') {
@@ -109,12 +106,10 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
           phone: form.phone,
         });
         onClose();
-      } else if (view === 'forgot') {
-        await resetPassword(form.email);
-        setSuccess('Email de recuperação enviado! Verifique sua caixa de entrada.');
       }
     } catch (err) {
       const msg = (err.message || '').toLowerCase();
+      const code = (err.code || '').toLowerCase();
 
       // Mapa de traduções: chave é substring (lowercase) da mensagem do Supabase
       const translations = [
@@ -124,7 +119,8 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
         ['email not confirmed',                    'Confirme seu email antes de entrar.'],
         ['unable to validate email',               'Formato de email inválido.'],
         ['signup requires a valid password',        'Informe uma senha válida.'],
-        ['email rate limit exceeded',              'Muitas tentativas. Aguarde um momento.'],
+        ['email rate limit exceeded',              'Limite de emails atingido. Aguarde cerca de 1 hora ou tente fazer login se já se cadastrou.'],
+        ['over_email_send_rate_limit',             'Limite de emails atingido. Aguarde cerca de 1 hora ou tente fazer login se já se cadastrou.'],
         ['request this after',                     'Aguarde alguns segundos para tentar novamente.'],
         ['user not found',                         'Nenhuma conta encontrada com este email.'],
         ['rate',                                   'Muitas tentativas. Tente novamente em instantes.'],
@@ -137,7 +133,7 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
 
       let friendly = null;
       for (const [key, translated] of translations) {
-        if (msg.includes(key)) {
+        if (msg.includes(key) || code.includes(key)) {
           friendly = translated;
           break;
         }
@@ -229,14 +225,6 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
                   onClick={() => switchView('register')}
                 >
                   Não tenho Cadastro
-                </button>
-
-                <button
-                  type="button"
-                  className="auth-link"
-                  onClick={() => switchView('forgot')}
-                >
-                  Esqueceu a sua senha?
                 </button>
               </div>
             </>
@@ -334,59 +322,6 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
                 </button>
 
                 <MercadoLogo />
-              </div>
-            </>
-          )}
-
-          {/* ── FORGOT VIEW ── */}
-          {view === 'forgot' && (
-            <>
-              <div className="auth-body">
-                <MercadoLogo />
-
-                {error && <p className="auth-error">{error}</p>}
-                {success && <p className="auth-success">{success}</p>}
-
-                <p className="auth-forgot-hint">
-                  Informe seu e-mail e enviaremos um link para redefinir a senha.
-                </p>
-
-                <div className="auth-field">
-                  <label className="auth-label">Seu e-mail</label>
-                  <input
-                    className="auth-input"
-                    type="email"
-                    name="email"
-                    placeholder="exemplo@gmail.com"
-                    value={form.email}
-                    onChange={handleChange}
-                    required
-                    autoFocus
-                  />
-                </div>
-              </div>
-
-              <div className="auth-footer">
-                <button
-                  type="submit"
-                  className="auth-btn-primary"
-                  disabled={loading}
-                >
-                  {loading ? (
-                    <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
-                      <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
-                      Enviando…
-                    </span>
-                  ) : 'Enviar email'}
-                </button>
-
-                <button
-                  type="button"
-                  className="auth-btn-dark"
-                  onClick={() => switchView('login')}
-                >
-                  ← Voltar ao login
-                </button>
               </div>
             </>
           )}
