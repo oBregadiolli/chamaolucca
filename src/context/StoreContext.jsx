@@ -15,6 +15,14 @@ export function StoreProvider({ children }) {
   const [freeShippingAbove, setFreeShippingAbove] = useState(0);
   const [freeShippingActive,setFreeShippingActive]= useState(false);
 
+  function checkIfOpen(open, close) {
+    const now    = new Date();
+    const nowMin = now.getHours() * 60 + now.getMinutes();
+    const [oh, om] = open.split(':').map(Number);
+    const [ch, cm] = close.split(':').map(Number);
+    setIsOpen(nowMin >= oh * 60 + om && nowMin < ch * 60 + cm);
+  }
+
   useEffect(() => {
     async function fetchSettings() {
       const { data } = await supabase.from('store_settings').select('key, value');
@@ -36,14 +44,6 @@ export function StoreProvider({ children }) {
     }
     fetchSettings();
   }, []);
-
-  function checkIfOpen(open, close) {
-    const now    = new Date();
-    const nowMin = now.getHours() * 60 + now.getMinutes();
-    const [oh, om] = open.split(':').map(Number);
-    const [ch, cm] = close.split(':').map(Number);
-    setIsOpen(nowMin >= oh * 60 + om && nowMin < ch * 60 + cm);
-  }
 
   /** Calculate shipping for a given subtotal */
   function calcShipping(subtotal) {

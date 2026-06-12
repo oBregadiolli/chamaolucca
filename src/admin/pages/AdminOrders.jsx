@@ -1014,6 +1014,7 @@ function SelectionBar({ count, onCreateRoute, onClear, willSplit }) {
 
 // ─── Main Page ─────────────────────────────────────────────────────────
 export default function AdminOrders() {
+  const { profile } = useAuth();
   const [orders,         setOrders]         = useState([]);
   const [loading,        setLoading]        = useState(true);
   const [selectedId,     setSelectedId]     = useState(null);

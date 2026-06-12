@@ -1,0 +1,667 @@
+﻿{
+  "tables": [
+    {
+      "table_name": "addresses"
+    },
+    {
+      "table_name": "cart_items"
+    },
+    {
+      "table_name": "carts"
+    },
+    {
+      "table_name": "categories"
+    },
+    {
+      "table_name": "coupons"
+    },
+    {
+      "table_name": "delivery_slot_exceptions"
+    },
+    {
+      "table_name": "delivery_slots"
+    },
+    {
+      "table_name": "drivers"
+    },
+    {
+      "table_name": "neighborhoods"
+    },
+    {
+      "table_name": "order_items"
+    },
+    {
+      "table_name": "orders"
+    },
+    {
+      "table_name": "products"
+    },
+    {
+      "table_name": "profiles"
+    },
+    {
+      "table_name": "route_stops"
+    },
+    {
+      "table_name": "routes"
+    },
+    {
+      "table_name": "store_settings"
+    }
+  ],
+  "rls": [
+    {
+      "table_name": "addresses",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "cart_items",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "carts",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "categories",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "coupons",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "delivery_slot_exceptions",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "delivery_slots",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "drivers",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "neighborhoods",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "order_items",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "orders",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "products",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "profiles",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "route_stops",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "routes",
+      "rls_enabled": true
+    },
+    {
+      "table_name": "store_settings",
+      "rls_enabled": true
+    }
+  ],
+  "policies": [
+    {
+      "tablename": "addresses",
+      "policyname": "addresses_own",
+      "cmd": "ALL"
+    },
+    {
+      "tablename": "cart_items",
+      "policyname": "cart_items_own",
+      "cmd": "ALL"
+    },
+    {
+      "tablename": "carts",
+      "policyname": "carts_own",
+      "cmd": "ALL"
+    },
+    {
+      "tablename": "categories",
+      "policyname": "categories_admin_write",
+      "cmd": "ALL"
+    },
+    {
+      "tablename": "categories",
+      "policyname": "categories_public_read",
+      "cmd": "SELECT"
+    },
+    {
+      "tablename": "coupons",
+      "policyname": "coupons_admin_write",
+      "cmd": "ALL"
+    },
+    {
+      "tablename": "coupons",
+      "policyname": "coupons_read_active",
+      "cmd": "SELECT"
+    },
+    {
+      "tablename": "delivery_slot_exceptions",
+      "policyname": "delivery_slot_exceptions_admin",
+      "cmd": "ALL"
+    },
+    {
+      "tablename": "delivery_slots",
+      "policyname": "delivery_slots_admin_write",
+      "cmd": "ALL"
+    },
+    {
+      "tablename": "delivery_slots",
+      "policyname": "delivery_slots_public_read",
+      "cmd": "SELECT"
+    },
+    {
+      "tablename": "drivers",
+      "policyname": "drivers_admin",
+      "cmd": "ALL"
+    },
+    {
+      "tablename": "neighborhoods",
+      "policyname": "neighborhoods_admin",
+      "cmd": "ALL"
+    },
+    {
+      "tablename": "neighborhoods",
+      "policyname": "neighborhoods_public_read",
+      "cmd": "SELECT"
+    },
+    {
+      "tablename": "order_items",
+      "policyname": "order_items_insert",
+      "cmd": "INSERT"
+    },
+    {
+      "tablename": "order_items",
+      "policyname": "order_items_select",
+      "cmd": "SELECT"
+    },
+    {
+      "tablename": "orders",
+      "policyname": "orders_insert_own",
+      "cmd": "INSERT"
+    },
+    {
+      "tablename": "orders",
+      "policyname": "orders_select_own",
+      "cmd": "SELECT"
+    },
+    {
+      "tablename": "orders",
+      "policyname": "orders_update",
+      "cmd": "UPDATE"
+    },
+    {
+      "tablename": "products",
+      "policyname": "products_admin_write",
+      "cmd": "ALL"
+    },
+    {
+      "tablename": "products",
+      "policyname": "products_public_read",
+      "cmd": "SELECT"
+    },
+    {
+      "tablename": "profiles",
+      "policyname": "profiles_insert_own",
+      "cmd": "INSERT"
+    },
+    {
+      "tablename": "profiles",
+      "policyname": "profiles_select_own",
+      "cmd": "SELECT"
+    },
+    {
+      "tablename": "profiles",
+      "policyname": "profiles_update_own",
+      "cmd": "UPDATE"
+    },
+    {
+      "tablename": "route_stops",
+      "policyname": "route_stops_admin",
+      "cmd": "ALL"
+    },
+    {
+      "tablename": "routes",
+      "policyname": "routes_admin",
+      "cmd": "ALL"
+    },
+    {
+      "tablename": "store_settings",
+      "policyname": "store_settings_admin_write",
+      "cmd": "ALL"
+    },
+    {
+      "tablename": "store_settings",
+      "policyname": "store_settings_public_read",
+      "cmd": "SELECT"
+    }
+  ],
+  "routines": [
+    {
+      "routine_name": "get_slot_availability",
+      "routine_type": "FUNCTION"
+    },
+    {
+      "routine_name": "get_slot_exceptions_for_date",
+      "routine_type": "FUNCTION"
+    },
+    {
+      "routine_name": "handle_new_user",
+      "routine_type": "FUNCTION"
+    },
+    {
+      "routine_name": "increment_coupon_use",
+      "routine_type": "FUNCTION"
+    },
+    {
+      "routine_name": "is_admin",
+      "routine_type": "FUNCTION"
+    },
+    {
+      "routine_name": "set_category_slug",
+      "routine_type": "FUNCTION"
+    },
+    {
+      "routine_name": "set_product_slug",
+      "routine_type": "FUNCTION"
+    },
+    {
+      "routine_name": "set_updated_at",
+      "routine_type": "FUNCTION"
+    },
+    {
+      "routine_name": "slugify",
+      "routine_type": "FUNCTION"
+    },
+    {
+      "routine_name": "unaccent",
+      "routine_type": "FUNCTION"
+    },
+    {
+      "routine_name": "unaccent",
+      "routine_type": "FUNCTION"
+    },
+    {
+      "routine_name": "unaccent_init",
+      "routine_type": "FUNCTION"
+    },
+    {
+      "routine_name": "unaccent_lexize",
+      "routine_type": "FUNCTION"
+    }
+  ],
+  "triggers": [
+    {
+      "trigger_name": "addresses_updated_at",
+      "event_object_table": "addresses",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "cart_items_updated_at",
+      "event_object_table": "cart_items",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "carts_updated_at",
+      "event_object_table": "carts",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "categories_set_slug",
+      "event_object_table": "categories",
+      "event_manipulation": "INSERT",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "categories_set_slug",
+      "event_object_table": "categories",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "categories_updated_at",
+      "event_object_table": "categories",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "coupons_updated_at",
+      "event_object_table": "coupons",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "delivery_slots_updated_at",
+      "event_object_table": "delivery_slots",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "drivers_updated_at",
+      "event_object_table": "drivers",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "orders_updated_at",
+      "event_object_table": "orders",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "products_updated_at",
+      "event_object_table": "products",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "products_set_slug",
+      "event_object_table": "products",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "products_set_slug",
+      "event_object_table": "products",
+      "event_manipulation": "INSERT",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "profiles_updated_at",
+      "event_object_table": "profiles",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE"
+    },
+    {
+      "trigger_name": "routes_updated_at",
+      "event_object_table": "routes",
+      "event_manipulation": "UPDATE",
+      "action_timing": "BEFORE"
+    }
+  ],
+  "sequences": [
+    {
+      "sequence_name": "order_number_seq"
+    }
+  ],
+  "buckets": [
+    {
+      "id": "product-images",
+      "name": "product-images",
+      "public": true
+    }
+  ],
+  "settings": [
+    {
+      "key": "close_time",
+      "value": "23:00",
+      "label": "Hor├írio de fechamento"
+    },
+    {
+      "key": "coverage_cities",
+      "value": "Alagoinhas",
+      "label": "Cidades atendidas"
+    },
+    {
+      "key": "free_shipping_above",
+      "value": "0",
+      "label": "Frete gr├ítis acima de (R$)"
+    },
+    {
+      "key": "free_shipping_active",
+      "value": "false",
+      "label": "Frete gr├ítis habilitado"
+    },
+    {
+      "key": "open_time",
+      "value": "07:00",
+      "label": "Hor├írio de abertura"
+    },
+    {
+      "key": "shipping_fee",
+      "value": "4.00",
+      "label": "Valor fixo do frete (R$)"
+    },
+    {
+      "key": "store_address",
+      "value": "",
+      "label": "Endere├ºo da loja"
+    },
+    {
+      "key": "store_city",
+      "value": "Alagoinhas",
+      "label": "Cidade da loja"
+    },
+    {
+      "key": "store_lat",
+      "value": "",
+      "label": "Latitude da loja"
+    },
+    {
+      "key": "store_lng",
+      "value": "",
+      "label": "Longitude da loja"
+    }
+  ],
+  "slots": [
+    {
+      "slot_label": "Manh├ú cedo",
+      "slot_start": "07:00",
+      "slot_end": "09:00",
+      "sort_order": 1,
+      "active": true,
+      "max_orders": 15
+    },
+    {
+      "slot_label": "Manh├ú cedo",
+      "slot_start": "07:00",
+      "slot_end": "09:00",
+      "sort_order": 1,
+      "active": true,
+      "max_orders": 15
+    },
+    {
+      "slot_label": "Manh├ú",
+      "slot_start": "09:00",
+      "slot_end": "11:00",
+      "sort_order": 2,
+      "active": true,
+      "max_orders": 20
+    },
+    {
+      "slot_label": "Manh├ú",
+      "slot_start": "09:00",
+      "slot_end": "11:00",
+      "sort_order": 2,
+      "active": true,
+      "max_orders": 20
+    },
+    {
+      "slot_label": "Meio-dia",
+      "slot_start": "11:00",
+      "slot_end": "13:00",
+      "sort_order": 3,
+      "active": true,
+      "max_orders": 20
+    },
+    {
+      "slot_label": "Meio-dia",
+      "slot_start": "11:00",
+      "slot_end": "13:00",
+      "sort_order": 3,
+      "active": true,
+      "max_orders": 20
+    },
+    {
+      "slot_label": "Tarde",
+      "slot_start": "14:00",
+      "slot_end": "16:00",
+      "sort_order": 4,
+      "active": true,
+      "max_orders": 20
+    },
+    {
+      "slot_label": "Tarde",
+      "slot_start": "14:00",
+      "slot_end": "16:00",
+      "sort_order": 4,
+      "active": true,
+      "max_orders": 20
+    },
+    {
+      "slot_label": "Final da tarde",
+      "slot_start": "16:00",
+      "slot_end": "18:00",
+      "sort_order": 5,
+      "active": true,
+      "max_orders": 15
+    },
+    {
+      "slot_label": "Final da tarde",
+      "slot_start": "16:00",
+      "slot_end": "18:00",
+      "sort_order": 5,
+      "active": true,
+      "max_orders": 15
+    },
+    {
+      "slot_label": "Noite",
+      "slot_start": "18:00",
+      "slot_end": "20:00",
+      "sort_order": 6,
+      "active": true,
+      "max_orders": 10
+    },
+    {
+      "slot_label": "Noite",
+      "slot_start": "18:00",
+      "slot_end": "20:00",
+      "sort_order": 6,
+      "active": true,
+      "max_orders": 10
+    }
+  ],
+  "neighborhoods": [
+    {
+      "city": "Alagoinhas",
+      "name": "Alagoinhas Velha",
+      "active": true
+    },
+    {
+      "city": "Alagoinhas",
+      "name": "Barreiro",
+      "active": true
+    },
+    {
+      "city": "Alagoinhas",
+      "name": "Centro",
+      "active": true
+    },
+    {
+      "city": "Alagoinhas",
+      "name": "Jardim Petrolar",
+      "active": true
+    },
+    {
+      "city": "Alagoinhas",
+      "name": "Santa Teresinha",
+      "active": true
+    }
+  ],
+  "columns": [
+    {
+      "table_name": "addresses",
+      "column_name": "phone",
+      "data_type": "text"
+    },
+    {
+      "table_name": "addresses",
+      "column_name": "reference",
+      "data_type": "text"
+    },
+    {
+      "table_name": "delivery_slot_exceptions",
+      "column_name": "active_override",
+      "data_type": "boolean"
+    },
+    {
+      "table_name": "delivery_slot_exceptions",
+      "column_name": "max_orders_override",
+      "data_type": "integer"
+    },
+    {
+      "table_name": "delivery_slot_exceptions",
+      "column_name": "slot_id",
+      "data_type": "uuid"
+    },
+    {
+      "table_name": "delivery_slots",
+      "column_name": "max_orders",
+      "data_type": "integer"
+    },
+    {
+      "table_name": "neighborhoods",
+      "column_name": "active",
+      "data_type": "boolean"
+    },
+    {
+      "table_name": "neighborhoods",
+      "column_name": "city",
+      "data_type": "text"
+    },
+    {
+      "table_name": "neighborhoods",
+      "column_name": "created_at",
+      "data_type": "timestamp with time zone"
+    },
+    {
+      "table_name": "neighborhoods",
+      "column_name": "id",
+      "data_type": "uuid"
+    },
+    {
+      "table_name": "neighborhoods",
+      "column_name": "name",
+      "data_type": "text"
+    },
+    {
+      "table_name": "order_items",
+      "column_name": "total_price",
+      "data_type": "numeric"
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "cpf",
+      "data_type": "text"
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "promo_emails",
+      "data_type": "boolean"
+    },
+    {
+      "table_name": "profiles",
+      "column_name": "whatsapp",
+      "data_type": "text"
+    }
+  ]
+}

@@ -14,6 +14,10 @@ import Profile from './pages/Profile';
 import Checkout from './pages/Checkout';
 import OrderConfirmation from './pages/OrderConfirmation';
 import ProductDetail from './pages/ProductDetail';
+import NotFound from './pages/NotFound';
+import Terms from './pages/Terms';
+import Privacy from './pages/Privacy';
+import ResetPassword from './pages/ResetPassword';
 
 // Admin
 import AdminGuard from './admin/AdminGuard';
@@ -59,6 +63,7 @@ export default function App() {
                 <Route path="rotas/:id"       element={<AdminRouteDetail />} />
                 <Route path="entregadores"     element={<AdminDrivers />} />
                 <Route path="geocodificacao" element={<AdminGeocoding />} />
+                <Route path="*" element={<NotFound />} />
               </Route>
 
               {/* ── Storefront routes ── */}
@@ -83,9 +88,13 @@ export default function App() {
                           element={<Store onOpenAuth={() => setAuthOpen(true)} />}
                         />
                         <Route path="/perfil" element={<Profile />} />
+                        <Route path="/redefinir-senha" element={<ResetPassword />} />
+                        <Route path="/termos" element={<Terms />} />
+                        <Route path="/privacidade" element={<Privacy />} />
                         <Route path="/checkout" element={<Checkout />} />
                         <Route path="/pedido/:id" element={<OrderConfirmation />} />
                         <Route path="/item/:productId" element={<ProductDetail />} />
+                        <Route path="*" element={<NotFound />} />
                       </Routes>
                     </main>
 

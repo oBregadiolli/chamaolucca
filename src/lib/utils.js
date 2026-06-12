@@ -1,3 +1,10 @@
+/** Normaliza método de pagamento do app para o contrato do Mercado Pago. */
+export function mpPaymentMethod(method) {
+  if (method === 'credit_card') return 'credit';
+  if (method === 'debit_card') return 'debit';
+  return method;
+}
+
 export function formatCurrency(value) {
   return new Intl.NumberFormat('pt-BR', {
     style: 'currency',

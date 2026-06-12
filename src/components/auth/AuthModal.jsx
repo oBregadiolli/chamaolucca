@@ -1,4 +1,5 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import fotoLaranja from '../../assets/fotoLaranja.png';
 
@@ -12,14 +13,45 @@ function MercadoLogo() {
   );
 }
 
+const LOGIN_GUARD_KEY = 'chamaolucca_login_guard';
+
+function readLoginGuard() {
+  try {
+    const raw = sessionStorage.getItem(LOGIN_GUARD_KEY);
+    return raw ? JSON.parse(raw) : { failures: 0, blockedUntil: 0 };
+  } catch {
+    return { failures: 0, blockedUntil: 0 };
+  }
+}
+
+function writeLoginGuard(guard) {
+  sessionStorage.setItem(LOGIN_GUARD_KEY, JSON.stringify(guard));
+}
+
+function blockSeconds(failures) {
+  if (failures >= 5) return 300;
+  if (failures >= 3) return 30;
+  return 0;
+}
+
 export default function AuthModal({ onClose, initialView = 'login' }) {
   const [view, setView] = useState(initialView);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [remember, setRemember] = useState(true);
+  const [blockedUntil, setBlockedUntil] = useState(() => readLoginGuard().blockedUntil || 0);
+  const [now, setNow] = useState(Date.now());
 
   const { signIn, signUp, resetPassword } = useAuth();
+
+  useEffect(() => {
+    if (blockedUntil <= Date.now()) return undefined;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [blockedUntil]);
+
+  const loginBlocked = view === 'login' && blockedUntil > now;
+  const blockRemainingSec = loginBlocked ? Math.ceil((blockedUntil - now) / 1000) : 0;
 
   const [form, setForm] = useState({
     name: '',
@@ -61,7 +93,13 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
 
     try {
       if (view === 'login') {
+        if (loginBlocked) {
+          setError(`Aguarde ${blockRemainingSec}s antes de tentar novamente.`);
+          return;
+        }
         await signIn({ email: form.email, password: form.password });
+        writeLoginGuard({ failures: 0, blockedUntil: 0 });
+        setBlockedUntil(0);
         onClose();
       } else if (view === 'register') {
         await signUp({
@@ -106,6 +144,15 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
       }
 
       setError(friendly || 'Erro inesperado. Tente novamente.');
+
+      if (view === 'login') {
+        const guard = readLoginGuard();
+        const failures = guard.failures + 1;
+        const seconds = blockSeconds(failures);
+        const nextBlocked = seconds > 0 ? Date.now() + seconds * 1000 : 0;
+        writeLoginGuard({ failures, blockedUntil: nextBlocked });
+        setBlockedUntil(nextBlocked);
+      }
     } finally {
       setLoading(false);
     }
@@ -157,24 +204,17 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
                     minLength={6}
                   />
                 </div>
-
-                <label className="auth-remember">
-                  <input
-                    type="checkbox"
-                    checked={remember}
-                    onChange={(e) => setRemember(e.target.checked)}
-                  />
-                  Deseja lembrar?
-                </label>
               </div>
 
               <div className="auth-footer">
                 <button
                   type="submit"
                   className="auth-btn-primary"
-                  disabled={loading}
+                  disabled={loading || loginBlocked}
                 >
-                  {loading ? (
+                  {loginBlocked ? (
+                    `Aguarde ${blockRemainingSec}s…`
+                  ) : loading ? (
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8 }}>
                       <span style={{ width: 16, height: 16, border: '2px solid rgba(255,255,255,0.4)', borderTopColor: '#fff', borderRadius: '50%', animation: 'spin 0.8s linear infinite', display: 'inline-block' }} />
                       Entrando…
@@ -265,9 +305,9 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
 
                 <p className="auth-terms">
                   Ao se cadastrar, concorda com a{' '}
-                  <a href="#" onClick={(e) => e.preventDefault()}>Política de Privacidade</a>
+                  <Link to="/privacidade" onClick={onClose}>Política de Privacidade</Link>
                   {' '}e os{' '}
-                  <a href="#" onClick={(e) => e.preventDefault()}>Termos de Serviço</a>.
+                  <Link to="/termos" onClick={onClose}>Termos de Serviço</Link>.
                 </p>
               </div>
 

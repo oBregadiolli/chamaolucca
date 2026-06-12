@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
-import { formatCurrency, formatDate } from '../lib/utils';
+import { formatCurrency, formatDate, mpPaymentMethod } from '../lib/utils';
 import Icon from '../components/ui/Icon';
 import '../styles/profile.css';
 
@@ -234,7 +234,7 @@ function OrderDetailDrawer({ order, onClose, onRetry, retrying, retryError }) {
    Profile Page
    ═══════════════════════════════════════════════ */
 export default function Profile() {
-  const { user, profile, signOut } = useAuth();
+  const { user, profile, signOut, loading: authLoading } = useAuth();
   const navigate = useNavigate();
 
   /* ── data ── */
@@ -271,10 +271,10 @@ export default function Profile() {
   const sectionRefs = useRef({});
   const [activeNav, setActiveNav] = useState('info');
 
-  /* redirect if not logged in */
+  /* redirect if not logged in (after auth finishes loading) */
   useEffect(() => {
-    if (user === null) navigate('/');
-  }, [user, navigate]);
+    if (!authLoading && user === null) navigate('/');
+  }, [authLoading, user, navigate]);
 
   /* populate form when profile loads */
   useEffect(() => {
@@ -400,7 +400,8 @@ export default function Profile() {
           payer_email:  user.email ?? `${user.id}@chamaolucca.com`,
           payer_name:   'Cliente',
           shipping:     selectedOrder.shipping ?? 0,
-          app_url:      appUrl,
+          app_url:        appUrl,
+          payment_method: mpPaymentMethod(selectedOrder.payment_method ?? 'pix'),
         },
       });
 
@@ -420,6 +421,14 @@ export default function Profile() {
   }
 
   const displayName = profile?.name || user?.email?.split('@')[0] || 'Você';
+
+  if (authLoading || (!user && !authLoading)) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '50vh' }}>
+        <div className="spinner" />
+      </div>
+    );
+  }
 
   return (
     <>

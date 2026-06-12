@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
-import { useParams, Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { useParams, Link, useSearchParams } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
-import { formatCurrency, formatDate } from '../lib/utils';
+import { formatCurrency, formatDate, mpPaymentMethod } from '../lib/utils';
 import Icon from '../components/ui/Icon';
 import '../styles/checkout.css';
 import '../styles/order-confirmation.css';
@@ -202,8 +202,7 @@ function PaymentStatusBlock({ order, polling, onRetry, retrying, retryError }) {
 /* ── Main page ────────────────────────────────── */
 export default function OrderConfirmation() {
   const { id }          = useParams();
-  const { user }        = useAuth();
-  const navigate        = useNavigate();
+  const { user, loading: authLoading } = useAuth();
   const [searchParams]  = useSearchParams();
   const mpStatus        = searchParams.get('mp_status');
 
@@ -219,7 +218,10 @@ export default function OrderConfirmation() {
   const pollCount = useRef(0);
 
   const loadOrder = useCallback(async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return null;
+    }
     const { data } = await supabase
       .from('orders')
       .select('*, order_items(*)')
@@ -311,6 +313,7 @@ export default function OrderConfirmation() {
           payer_name:   'Cliente',
           shipping:     order.shipping ?? 0,
           app_url:      appUrl,
+          payment_method: mpPaymentMethod(order.payment_method ?? 'pix'),
         },
       });
 
@@ -326,7 +329,21 @@ export default function OrderConfirmation() {
     }
   }
 
-  if (loading) return <Spinner />;
+  if (authLoading || loading) return <Spinner />;
+
+  if (!user) {
+    return (
+      <div className="oc-page">
+        <div className="oc-card" style={{ textAlign: 'center', padding: '56px 28px' }}>
+          <Icon name="lock" size={40} style={{ color: '#d1d5db', marginBottom: 12 }} />
+          <p style={{ color: '#9ca3af', fontSize: '0.9375rem', marginBottom: 20 }}>
+            Faça login para ver os detalhes do seu pedido.
+          </p>
+          <Link to="/loja" className="oc-btn-primary">Ir para a loja</Link>
+        </div>
+      </div>
+    );
+  }
 
   if (!order) {
     return (

@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { CheckoutProvider, useCheckout, CHECKOUT_STEPS } from '../context/CheckoutContext';
 import { supabase } from '../lib/supabase';
+import { mpPaymentMethod } from '../lib/utils';
 import AddressStep from '../components/checkout/AddressStep';
 import ScheduleStep from '../components/checkout/ScheduleStep';
 import PaymentStep from '../components/checkout/PaymentStep';
@@ -230,8 +231,8 @@ function RedirectingScreen() {
 
 /* ── CheckoutFlow ─────────────────────────────────── */
 function CheckoutFlow() {
-  const { user, profile } = useAuth();
-  const { items, subtotal, clearCart } = useCart();
+  const { user, profile, loading: authLoading } = useAuth();
+  const { items, clearCart, cartId } = useCart();
   const { step, STEP_ORDER, savedAddress, address, schedule, deliveryMode } = useCheckout();
   const navigate = useNavigate();
 
@@ -250,6 +251,14 @@ function CheckoutFlow() {
   }, [items, navigate]);
 
   const stepIdx = STEP_ORDER.indexOf(step);
+
+  if (authLoading) {
+    return (
+      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '60vh' }}>
+        <div className="spinner" />
+      </div>
+    );
+  }
 
   // If user not logged in, show login prompt (not a hard redirect)
   if (!user) {
@@ -302,10 +311,14 @@ function CheckoutFlow() {
     );
   }
 
-  async function placeOrder({ discount = 0, shipping = 4, couponCode = null, couponId = null, testMode = false } = {}) {
+  async function placeOrder({ couponCode = null, testMode = false } = {}) {
 
     if (!user) { setError('Você precisa estar logado para finalizar o pedido.'); return; }
     if (items.length === 0) { setError('Seu carrinho está vazio.'); return; }
+    if (!cartId) {
+      setError('Carrinho ainda sincronizando. Aguarde um instante e tente novamente.');
+      return;
+    }
 
     const addrData = savedAddress?.street ? savedAddress : address;
     if (!addrData?.street?.trim()) { setError('Por favor, preencha o endereço de entrega.'); return; }
@@ -316,97 +329,51 @@ function CheckoutFlow() {
     setSaving(true);
     setRedirecting(true);
 
-    const discountApplied = parseFloat(discount) || 0;
-    const shippingApplied = parseFloat(shipping)  || 0;
-    const total = parseFloat((subtotal - discountApplied + shippingApplied).toFixed(2));
+    const delivery_data = {
+      address:        addrData.street.trim(),
+      complement:     addrData.complement || null,
+      neighborhood:   addrData.neighborhood || '',
+      phone:          addrData.phone || '',
+      zip_code:       addrData.zipCode || '',
+      reference:      addrData.reference || '',
+      delivery_date:  deliveryMode === 'express' ? new Date().toISOString().slice(0, 10) : schedule.date,
+      delivery_time:  deliveryMode === 'express' ? 'express' : schedule.time,
+      delivery_mode:  deliveryMode,
+    };
 
-    // 1. Criar pedido no banco
-    const { data: order, error: orderError } = await supabase
-      .from('orders')
-      .insert({
-        user_id:            user.id,
-        total,
-        subtotal,
-        shipping:           shippingApplied,
-        discount:           discountApplied,
-        coupon_code:        couponCode,
-        delivery_address:   addrData.street.trim(),
-        neighborhood:       addrData.neighborhood || '',
-        phone:              addrData.phone || '',
-        zip_code:           addrData.zipCode || '',
-        delivery_reference: addrData.reference || '',
-        delivery_date:      deliveryMode === 'express' ? new Date().toISOString().slice(0, 10) : schedule.date,
-        delivery_time:      deliveryMode === 'express' ? 'express' : schedule.time,
-        delivery_mode:      deliveryMode,
-        payment_method:     payment,
-        payment_status:     'pending',
-        payment_provider:   'mercadopago',
-        status:             'received',
-      })
-      .select()
-      .single();
+    const { data: placeData, error: placeErr } = await supabase.functions.invoke('place-order', {
+      body: {
+        cart_id: cartId,
+        coupon_code: couponCode,
+        delivery_data,
+        payment_method: payment,
+        test_mode: testMode,
+      },
+    });
 
-    if (orderError || !order) {
+    if (placeErr || !placeData?.ok) {
       setSaving(false);
-      setRedirecting(false); // hide overlay on error
-      setError(`Erro ao criar pedido: ${orderError?.message || 'Tente novamente.'}`);
+      setRedirecting(false);
+      setError(placeData?.error || placeErr?.message || 'Erro ao criar pedido. Tente novamente.');
       return;
     }
 
-    // 2. Inserir itens
-    await supabase.from('order_items').insert(
-      items.map((i) => ({
-        order_id:     order.id,
-        product_id:   i.id,
-        product_name: i.name,
-        quantity:     i.quantity,
-        unit_price:   i.price,
-        image_url:    i.image_url || null,
-      }))
-    );
-
-    // 3. Increment coupon use
-    if (couponId) {
-      await supabase.rpc('increment_coupon_use', { coupon_id: couponId }).catch(() => {});
-    }
-
-    // 4. Capturar itens antes de limpar o carrinho
-    const itemsSnapshot = items.map((i) => ({
-      title:      i.name,
+    const order = placeData.order;
+    const total = parseFloat(placeData.total ?? order.total);
+    const shippingApplied = parseFloat(placeData.shipping ?? order.shipping);
+    const itemsSnapshot = (placeData.items ?? []).map((i) => ({
+      title:      i.title,
       quantity:   i.quantity,
-      unit_price: i.price,
+      unit_price: i.unit_price,
     }));
 
-    // 5. Modo teste: pula MP e marca como pago direto
+    // Modo teste: aprovacao server-side (ALLOW_TEST_ORDERS no Supabase)
     if (testMode) {
-      console.log('[TestMode] ▶ STARTING test mode for order:', order.id);
-      
-      const { data: updateData, error: testErr } = await supabase.from('orders').update({
-        payment_status:  'approved',
-        payment_id:      'TEST_' + Date.now(),
-        paid_at:         new Date().toISOString(),
-      }).eq('id', order.id).select();
-
-      console.log('[TestMode] ▶ Update result:', { updateData, testErr });
-
-      if (testErr) {
-        console.error('[TestMode] ❌ update failed:', testErr.message, testErr);
-      } else {
-        console.log('[TestMode] ✅ Order updated successfully');
-      }
-
-      console.log('[TestMode] ▶ Clearing cart...');
       orderPlaced.current = true;
       clearCart();
-      
-      console.log('[TestMode] ▶ Setting saving=false, redirecting=false...');
       setSaving(false);
       setRedirecting(false);
-      
-      const targetUrl = `/pedido/${order.id}?mp_status=approved`;
-      console.log('[TestMode] ▶ Navigating to:', targetUrl);
-      navigate(targetUrl);
-      console.log('[TestMode] ▶ navigate() called');
+      navigate(`/pedido/${order.id}?mp_status=approved`);
       return;
     }
 
@@ -433,7 +400,7 @@ function CheckoutFlow() {
           payer_name:     profile?.name ?? 'Cliente',
           shipping:       shipping,
           app_url:        appUrl,
-          payment_method: payment, // pix | credit | debit → MP pre-selects the tab
+          payment_method: mpPaymentMethod(payment), // pix | credit | debit → MP pre-selects the tab
         },
       });
 

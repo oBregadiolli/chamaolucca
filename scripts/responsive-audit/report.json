@@ -1,0 +1,140 @@
+{
+  "base": "http://localhost:5174",
+  "at": "2026-06-12T03:16:26.497Z",
+  "summary": {
+    "total": 16,
+    "ok": 16,
+    "overflowIssues": [],
+    "errors": []
+  },
+  "results": [
+    {
+      "route": "/",
+      "viewport": "iphone-se",
+      "size": "375x667",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "landing-iphone-se.png"
+    },
+    {
+      "route": "/",
+      "viewport": "iphone-14",
+      "size": "390x844",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "landing-iphone-14.png"
+    },
+    {
+      "route": "/",
+      "viewport": "ipad",
+      "size": "768x1024",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "landing-ipad.png"
+    },
+    {
+      "route": "/",
+      "viewport": "desktop",
+      "size": "1280x800",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "landing-desktop.png"
+    },
+    {
+      "route": "/loja",
+      "viewport": "iphone-se",
+      "size": "375x667",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "loja-iphone-se.png"
+    },
+    {
+      "route": "/loja",
+      "viewport": "iphone-14",
+      "size": "390x844",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "loja-iphone-14.png"
+    },
+    {
+      "route": "/loja",
+      "viewport": "ipad",
+      "size": "768x1024",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "loja-ipad.png"
+    },
+    {
+      "route": "/loja",
+      "viewport": "desktop",
+      "size": "1280x800",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "loja-desktop.png"
+    },
+    {
+      "route": "/checkout",
+      "viewport": "iphone-se",
+      "size": "375x667",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "checkout-iphone-se.png"
+    },
+    {
+      "route": "/checkout",
+      "viewport": "iphone-14",
+      "size": "390x844",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "checkout-iphone-14.png"
+    },
+    {
+      "route": "/checkout",
+      "viewport": "ipad",
+      "size": "768x1024",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "checkout-ipad.png"
+    },
+    {
+      "route": "/checkout",
+      "viewport": "desktop",
+      "size": "1280x800",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "checkout-desktop.png"
+    },
+    {
+      "route": "/perfil",
+      "viewport": "iphone-se",
+      "size": "375x667",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "perfil-iphone-se.png"
+    },
+    {
+      "route": "/perfil",
+      "viewport": "iphone-14",
+      "size": "390x844",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "perfil-iphone-14.png"
+    },
+    {
+      "route": "/perfil",
+      "viewport": "ipad",
+      "size": "768x1024",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "perfil-ipad.png"
+    },
+    {
+      "route": "/perfil",
+      "viewport": "desktop",
+      "size": "1280x800",
+      "overflowPx": 0,
+      "ok": true,
+      "screenshot": "perfil-desktop.png"
+    }
+  ]
+}

@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { useCheckout } from '../../context/CheckoutContext';
 import FreeShippingBanner from './FreeShippingBanner';
 
@@ -182,10 +183,9 @@ export default function PaymentStep({ payment, setPayment }) {
           marginBottom: 4,
         }}>
           Confirmando, você concorda com os{' '}
-          <button type="button" className="co-payment-terms-link" style={{ fontSize: '0.75rem' }}
-            onClick={(e) => e.preventDefault()}>
+          <Link to="/termos" className="co-payment-terms-link" style={{ fontSize: '0.75rem' }}>
             Termos de uso
-          </button>.
+          </Link>.
         </p>
 
         {/* Actions */}

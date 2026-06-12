@@ -58,15 +58,7 @@ export function AuthProvider({ children }) {
     });
     if (error) throw error;
 
-    if (data.user) {
-      await supabase.from('profiles').upsert({
-        id:    data.user.id,
-        name,
-        phone,
-        email,
-        role:  'customer',
-      });
-    }
+    // Profile criado pelo trigger handle_new_user (server-side, role = customer)
     return data;
   }
 
@@ -83,7 +75,8 @@ export function AuthProvider({ children }) {
   }
 
   async function resetPassword(email) {
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const redirectTo = `${window.location.origin}/redefinir-senha`;
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
     if (error) throw error;
   }
 
