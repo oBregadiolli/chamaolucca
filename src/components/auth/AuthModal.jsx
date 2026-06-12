@@ -171,7 +171,7 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
               <div className="auth-body">
                 <MercadoLogo />
 
-                {error && <p className="auth-error" role="alert">{error}</p>}
+                {error && <p className="auth-error" role="alert" aria-live="polite">{error}</p>}
 
                 <div className="auth-field">
                   <label className="auth-label" htmlFor="auth-login-email">Seu e-mail</label>
@@ -236,7 +236,7 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
           {view === 'register' && (
             <>
               <div className="auth-body">
-                {error && <p className="auth-error" role="alert">{error}</p>}
+                {error && <p className="auth-error" role="alert" aria-live="polite">{error}</p>}
 
                 <div className="auth-field">
                   <label className="auth-label" htmlFor="auth-register-email">E-mail de acesso</label>
