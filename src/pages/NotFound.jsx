@@ -1,7 +1,10 @@
 import { Link } from 'react-router-dom';
 import Icon from '../components/ui/Icon';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function NotFound() {
+  usePageTitle('Página não encontrada — ChamaoLucca');
+
   return (
     <div style={{
       minHeight: '50vh',

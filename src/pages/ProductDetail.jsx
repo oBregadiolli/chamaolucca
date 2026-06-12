@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
 import { formatCurrency } from '../lib/utils';
 import Icon from '../components/ui/Icon';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function ProductDetail() {
   const { productId } = useParams();
@@ -16,6 +17,8 @@ export default function ProductDetail() {
 
   const cartItem = items.find((i) => i.id === productId);
   const qty = cartItem?.quantity || 0;
+
+  usePageTitle(product ? `${product.name} — ChamaoLucca` : 'Produto — ChamaoLucca');
 
   useEffect(() => {
     async function load() {

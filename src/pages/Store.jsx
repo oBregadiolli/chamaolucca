@@ -6,9 +6,11 @@ import { formatCurrency } from '../lib/utils';
 import ProductCard from '../components/store/ProductCard';
 import CartSidebar from '../components/store/CartSidebar';
 import Icon from '../components/ui/Icon';
+import { usePageTitle } from '../hooks/usePageTitle';
 import '../styles/store.css';
 
 export default function Store({ onOpenAuth }) {
+  usePageTitle('Loja — ChamaoLucca');
   const { openTime, closeTime, isOpen } = useStore();
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);

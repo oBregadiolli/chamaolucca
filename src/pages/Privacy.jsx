@@ -1,6 +1,9 @@
 import { LegalPageLayout, LegalSection, LegalNotice } from './legal/LegalLayout';
+import { usePageTitle } from '../hooks/usePageTitle';
 
 export default function Privacy() {
+  usePageTitle('Política de Privacidade — ChamaoLucca');
+
   return (
     <LegalPageLayout title="Política de Privacidade">
       <LegalNotice>
