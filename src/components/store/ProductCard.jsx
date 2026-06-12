@@ -1,10 +1,9 @@
-import { useNavigate } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { formatCurrency } from '../../lib/utils';
 import Icon from '../ui/Icon';
 
 export default function ProductCard({ product }) {
-  const navigate = useNavigate();
   const { items, addItem, updateQuantity, removeItem } = useCart();
   const cartItem = items.find((i) => i.id === product.id);
   const qty = cartItem?.quantity || 0;
@@ -14,12 +13,9 @@ export default function ProductCard({ product }) {
   return (
     <div className="product-card-store">
       {/* Clickable area: image + name → product detail */}
-      <div
-        onClick={() => navigate(`/item/${product.id}`)}
-        style={{ cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column' }}
-        role="button"
-        tabIndex={0}
-        onKeyDown={(e) => e.key === 'Enter' && navigate(`/item/${product.id}`)}
+      <Link
+        to={`/item/${product.id}`}
+        style={{ cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column', textDecoration: 'none', color: 'inherit' }}
         aria-label={`Ver detalhes de ${product.name}`}
       >
         <div className="product-card-img">
@@ -55,7 +51,7 @@ export default function ProductCard({ product }) {
         </div>
 
         <div className="product-card-name">{product.name}</div>
-      </div>
+      </Link>
 
       <div className="product-card-price">
         {formatCurrency(product.price)} cada
