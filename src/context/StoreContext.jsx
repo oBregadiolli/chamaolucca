@@ -15,12 +15,11 @@ export function StoreProvider({ children }) {
   const [freeShippingAbove, setFreeShippingAbove] = useState(0);
   const [freeShippingActive,setFreeShippingActive]= useState(false);
 
-  function checkIfOpen(open, close) {
-    const now    = new Date();
+  function computeIsOpen(open, close, now = new Date()) {
     const nowMin = now.getHours() * 60 + now.getMinutes();
     const [oh, om] = open.split(':').map(Number);
     const [ch, cm] = close.split(':').map(Number);
-    setIsOpen(nowMin >= oh * 60 + om && nowMin < ch * 60 + cm);
+    return nowMin >= oh * 60 + om && nowMin < ch * 60 + cm;
   }
 
   useEffect(() => {
@@ -38,12 +37,20 @@ export function StoreProvider({ children }) {
         if (map.shipping_fee)         setShippingFee(parseFloat(map.shipping_fee) || 4.0);
         if (map.free_shipping_above)  setFreeShippingAbove(parseFloat(map.free_shipping_above) || 0);
         if (map.free_shipping_active) setFreeShippingActive(map.free_shipping_active === 'true');
-        checkIfOpen(open, close);
+        setIsOpen(computeIsOpen(open, close));
       }
       setLoading(false);
     }
     fetchSettings();
   }, []);
+
+  useEffect(() => {
+    setIsOpen(computeIsOpen(openTime, closeTime));
+    const intervalId = setInterval(() => {
+      setIsOpen(computeIsOpen(openTime, closeTime));
+    }, 60_000);
+    return () => clearInterval(intervalId);
+  }, [openTime, closeTime]);
 
   /** Calculate shipping for a given subtotal */
   function calcShipping(subtotal) {

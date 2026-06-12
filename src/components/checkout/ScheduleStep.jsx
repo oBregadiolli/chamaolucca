@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
 import { useCheckout } from '../../context/CheckoutContext';
 import { getDeliveryDates } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
@@ -34,37 +34,45 @@ export default function ScheduleStep() {
 
   const selDate = schedule?.date || '';
   const selTime = schedule?.time || '';
-
-  // Fetch slots from RPC whenever selected date changes
-  const fetchSlots = useCallback(async (dateValue) => {
-    if (!dateValue) { setSlots([]); return; }
-    setLoadingSlots(true);
-    setSlotsError(false);
-    const { data, error } = await supabase
-      .rpc('get_slot_availability', { p_date: dateValue });
-    setLoadingSlots(false);
-    if (error) { setSlotsError(true); return; }
-
-    // If today, additionally filter slots whose end hour has already passed
-    const todayStr = new Date().toISOString().split('T')[0];
-    let result = data || [];
-    if (dateValue === todayStr) {
-      const nowHour = new Date().getHours() + new Date().getMinutes() / 60;
-      result = result.filter((s) => {
-        const endH = parseInt(s.slot_end.split(':')[0], 10);
-        return endH > nowHour + 1;
-      });
-    }
-    setSlots(result);
-  }, []);
+  const slotsActive = deliveryMode === 'scheduled' && Boolean(selDate);
+  const visibleSlots = slotsActive ? slots : [];
 
   useEffect(() => {
-    if (deliveryMode === 'scheduled') fetchSlots(selDate);
-  }, [selDate, deliveryMode, fetchSlots]);
+    if (!slotsActive) return;
+
+    let cancelled = false;
+
+    (async () => {
+      setLoadingSlots(true);
+      setSlotsError(false);
+      const { data, error } = await supabase.rpc('get_slot_availability', { p_date: selDate });
+      if (cancelled) return;
+      setLoadingSlots(false);
+      if (error) {
+        setSlotsError(true);
+        return;
+      }
+
+      const todayStr = new Date().toISOString().split('T')[0];
+      let result = data || [];
+      if (selDate === todayStr) {
+        const nowHour = new Date().getHours() + new Date().getMinutes() / 60;
+        result = result.filter((s) => {
+          const endH = parseInt(s.slot_end.split(':')[0], 10);
+          return endH > nowHour + 1;
+        });
+      }
+      setSlots(result);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [selDate, deliveryMode, slotsActive]);
 
   function handleDate(value) {
     const slotValue = (s) => `${s.slot_start}-${s.slot_end}`;
-    const prevOk   = slots.some((s) => slotValue(s) === selTime && !s.is_full);
+    const prevOk   = visibleSlots.some((s) => slotValue(s) === selTime && !s.is_full);
     setSchedule((prev) => ({ ...(prev || {}), date: value, time: prevOk ? selTime : '' }));
   }
 
@@ -83,15 +91,15 @@ export default function ScheduleStep() {
   }
 
   // canAdvance: for scheduled mode, selected time must exist and not be full
-  const selectedSlot = slots.find((s) => `${s.slot_start}-${s.slot_end}` === selTime);
+  const selectedSlot = visibleSlots.find((s) => `${s.slot_start}-${s.slot_end}` === selTime);
   const canAdvance =
     deliveryMode === 'express'
       ? expressAvailable
       : selDate && selTime && selectedSlot && !selectedSlot?.is_full;
 
   // Available / full / all counts
-  const available = slots.filter((s) => !s.is_full);
-  const allFull   = slots.length > 0 && available.length === 0;
+  const available = visibleSlots.filter((s) => !s.is_full);
+  const allFull   = visibleSlots.length > 0 && available.length === 0;
 
   return (
     <div className="co-step-wrapper">
@@ -231,7 +239,7 @@ export default function ScheduleStep() {
               <>
                 <p className="co-section-label">
                   Escolha o horário
-                  {selDate && !loadingSlots && slots.length > 0 && (
+                  {selDate && !loadingSlots && visibleSlots.length > 0 && (
                     <span style={{
                       marginLeft: 8, fontSize: '0.72rem', fontWeight: 600,
                       color: allFull ? '#dc2626' : '#94a3b8',
@@ -253,7 +261,7 @@ export default function ScheduleStep() {
                   }}>
                     Erro ao carregar horários. Tente recarregar a página.
                   </div>
-                ) : slots.length === 0 ? (
+                ) : visibleSlots.length === 0 ? (
                   <div style={{
                     padding: '14px 16px', background: '#fef2f2', border: '1px solid #fca5a5',
                     borderRadius: 12, fontSize: '0.85rem', color: '#b91c1c', marginBottom: 12,
@@ -277,9 +285,9 @@ export default function ScheduleStep() {
                 ) : null}
 
                 {/* Time grid — show all slots, mark full ones */}
-                {!loadingSlots && slots.length > 0 && (
+                {!loadingSlots && visibleSlots.length > 0 && (
                   <div className="time-grid" style={{ marginBottom: 8 }}>
-                    {slots.map((slot) => {
+                    {visibleSlots.map((slot) => {
                       const slotValue = `${slot.slot_start}-${slot.slot_end}`;
                       const isSelected = selTime === slotValue;
                       const isFull     = slot.is_full;
@@ -340,7 +348,7 @@ export default function ScheduleStep() {
                 )}
 
                 {/* Legend for full slots */}
-                {!loadingSlots && slots.some((s) => s.is_full) && !allFull && (
+                {!loadingSlots && visibleSlots.some((s) => s.is_full) && !allFull && (
                   <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
                     <span style={{ display: 'inline-block', width: 10, height: 10, background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 3 }} />
                     Horários em vermelho estão lotados e não podem ser selecionados.

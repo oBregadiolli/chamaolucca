@@ -68,6 +68,16 @@
   font-weight: 600;
 }
 
+.status-tag-closed {
+  background: #fef2f2;
+  color: #b91c1c;
+  border: 1px solid #fecaca;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
 .store-hero-icons {
   display: flex;
   flex-direction: column;

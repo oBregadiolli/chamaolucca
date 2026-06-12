@@ -20,6 +20,7 @@ type CartItemRow = {
 type DeliveryData = {
   address?: string;
   complement?: string | null;
+  city?: string;
   neighborhood?: string;
   phone?: string;
   zip_code?: string;
@@ -29,11 +30,62 @@ type DeliveryData = {
   delivery_mode?: string;
 };
 
+type NeighborhoodRow = {
+  name: string;
+  city: string;
+};
+
+function normalizeCityName(value: string | undefined | null): string {
+  return (value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+function parseCoverageCities(raw: string | undefined): string[] {
+  if (!raw?.trim()) return [];
+  return raw.split(',').map((c) => c.trim()).filter(Boolean);
+}
+
+/** Mesma lógica de AddressStep.jsx (normalizeCityName + isAddressInCoverage). */
+function isAddressInCoverage(
+  delivery: DeliveryData,
+  coverageCities: string[],
+  allNeighborhoods: NeighborhoodRow[],
+): boolean {
+  if (!coverageCities.length) return true;
+
+  const allowed = new Set(coverageCities.map(normalizeCityName));
+  const explicitCity = delivery.city?.trim();
+  if (explicitCity) {
+    return allowed.has(normalizeCityName(explicitCity));
+  }
+
+  const neighborhood = delivery.neighborhood?.trim();
+  if (neighborhood) {
+    return allNeighborhoods.some(
+      (n) =>
+        normalizeCityName(n.name) === normalizeCityName(neighborhood) &&
+        allowed.has(normalizeCityName(n.city)),
+    );
+  }
+
+  return false;
+}
+
 function effectivePrice(product: ProductRow): number {
   const price = Number(product.price);
   const promo = product.promotional_price != null ? Number(product.promotional_price) : null;
   if (promo != null && promo > 0 && promo < price) return promo;
   return price;
+}
+
+function isStoreOpen(openTime: string, closeTime: string, now = new Date()): boolean {
+  const nowMin = now.getHours() * 60 + now.getMinutes();
+  const [oh, om] = openTime.split(':').map(Number);
+  const [ch, cm] = closeTime.split(':').map(Number);
+  return nowMin >= oh * 60 + om && nowMin < ch * 60 + cm;
 }
 
 Deno.serve(async (req) => {
@@ -172,6 +224,34 @@ Deno.serve(async (req) => {
 
     const { data: settings } = await supabase.from('store_settings').select('key, value');
     const cfg = Object.fromEntries((settings ?? []).map((s: { key: string; value: string }) => [s.key, s.value]));
+
+    // Em produção ALLOW_TEST_ORDERS deve ser false.
+    // Bypass de horário e cobertura só para E2E/staging: secret + body.test_mode juntos.
+    const allowTestBypass =
+      Deno.env.get('ALLOW_TEST_ORDERS') === 'true' && test_mode === true;
+
+    if (!allowTestBypass) {
+      const openTime = cfg.open_time || '07:00';
+      const closeTime = cfg.close_time || '23:00';
+      if (!isStoreOpen(openTime, closeTime)) {
+        return jsonResponse({
+          ok: false,
+          error: `Loja fechada no momento. Abrimos às ${openTime} e fechamos às ${closeTime}.`,
+        }, 400, req);
+      }
+
+      const coverageCities = parseCoverageCities(cfg.coverage_cities);
+      if (coverageCities.length) {
+        const { data: neighborhoods } = await supabase
+          .from('neighborhoods')
+          .select('name, city');
+
+        if (!isAddressInCoverage(delivery_data, coverageCities, neighborhoods ?? [])) {
+          return jsonResponse({ ok: false, error: 'outside_coverage_area' }, 400, req);
+        }
+      }
+    }
+
     let shipping = parseFloat(cfg.shipping_fee || '4');
     if (
       cfg.free_shipping_active === 'true' &&

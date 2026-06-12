@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useStore } from '../context/StoreContext';
 import { CheckoutProvider, useCheckout, CHECKOUT_STEPS } from '../context/CheckoutContext';
 import { supabase } from '../lib/supabase';
 import { mpPaymentMethod } from '../lib/utils';
@@ -10,9 +11,10 @@ import ScheduleStep from '../components/checkout/ScheduleStep';
 import PaymentStep from '../components/checkout/PaymentStep';
 import ReviewStep from '../components/checkout/ReviewStep';
 import AuthModal from '../components/auth/AuthModal';
+import { ClosedStoreDialog } from '../components/ui/StoreDialogs';
 import Icon from '../components/ui/Icon';
+import { usePageTitle } from '../hooks/usePageTitle';
 import mpLogo from '../assets/mercadopagologo.png';
-import '../styles/checkout.css';
 import '../styles/checkout-steps.css';
 
 const STEP_META = [
@@ -231,8 +233,10 @@ function RedirectingScreen() {
 
 /* ── CheckoutFlow ─────────────────────────────────── */
 function CheckoutFlow() {
+  usePageTitle('Checkout — ChamaoLucca');
   const { user, profile, loading: authLoading } = useAuth();
   const { items, clearCart, cartId } = useCart();
+  const { isOpen, openTime, closeTime, loading: storeLoading } = useStore();
   const { step, STEP_ORDER, savedAddress, address, schedule, deliveryMode } = useCheckout();
   const navigate = useNavigate();
 
@@ -315,6 +319,10 @@ function CheckoutFlow() {
 
     if (!user) { setError('Você precisa estar logado para finalizar o pedido.'); return; }
     if (items.length === 0) { setError('Seu carrinho está vazio.'); return; }
+    if (!storeLoading && !isOpen) {
+      setError(`Loja fechada no momento. Abrimos às ${openTime} e fechamos às ${closeTime}.`);
+      return;
+    }
     if (!cartId) {
       setError('Carrinho ainda sincronizando. Aguarde um instante e tente novamente.');
       return;
@@ -332,6 +340,7 @@ function CheckoutFlow() {
     const delivery_data = {
       address:        addrData.street.trim(),
       complement:     addrData.complement || null,
+      city:           addrData.city || '',
       neighborhood:   addrData.neighborhood || '',
       phone:          addrData.phone || '',
       zip_code:       addrData.zipCode || '',
@@ -396,7 +405,7 @@ function CheckoutFlow() {
           order_id:       order.id,
           order_number:   order.order_number,
           items:          itemsSnapshot,
-          payer_email:    user.email ?? `${user.id}@chamaolucca.com`,
+          payer_email:    user.email ?? `${user.id}@chamaolucca.com.br`,
           payer_name:     profile?.name ?? 'Cliente',
           shipping:       shipping,
           app_url:        appUrl,
@@ -446,6 +455,14 @@ function CheckoutFlow() {
   // ── Steps do checkout ────────────────────────────
   return (
     <div className="co-page">
+      {!storeLoading && !isOpen && (
+        <ClosedStoreDialog
+          openTime={openTime}
+          closeTime={closeTime}
+          onClose={() => navigate('/loja')}
+        />
+      )}
+
       {/* Steps bar */}
       <div className="co-steps-bar">
         {STEP_META.map((s, i) => (

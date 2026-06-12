@@ -1,10 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useCheckout } from '../../context/CheckoutContext';
-import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
+import { useStore } from '../../context/StoreContext';
 import { supabase } from '../../lib/supabase';
 import Icon from '../ui/Icon';
 import FreeShippingBanner from './FreeShippingBanner';
+import { OutsideAreaDialog } from '../ui/StoreDialogs';
 
 /* ── Helpers de máscara ── */
 function maskPhone(v) {
@@ -53,10 +54,41 @@ function CartIcon() {
 /* ── Edge Function URL base ── */
 const EDGE_URL = import.meta.env.VITE_SUPABASE_URL + '/functions/v1';
 
+function normalizeCityName(value) {
+  return (value || '')
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .trim()
+    .toLowerCase();
+}
+
+function isAddressInCoverage(address, coverageCities, allNeighborhoods) {
+  if (!coverageCities?.length) return true;
+
+  const allowed = new Set(coverageCities.map(normalizeCityName));
+  const explicitCity = address.city?.trim();
+  if (explicitCity) {
+    return allowed.has(normalizeCityName(explicitCity));
+  }
+
+  const neighborhood = address.neighborhood?.trim();
+  if (neighborhood) {
+    return allNeighborhoods.some(
+      (n) =>
+        normalizeCityName(n.name) === normalizeCityName(neighborhood) &&
+        allowed.has(normalizeCityName(n.city)),
+    );
+  }
+
+  return false;
+}
+
 export default function AddressStep({ onBackToStore }) {
   const { address, setAddress, savedAddress, chooseAddress, nextStep } = useCheckout();
-  const { setIsOpen } = useCart();
   const { user } = useAuth();
+  const { coverageCities } = useStore();
+
+  const [showOutsideDialog, setShowOutsideDialog] = useState(false);
 
   // Geolocation state
   const [geoLoading, setGeoLoading] = useState(false);
@@ -189,12 +221,14 @@ export default function AddressStep({ onBackToStore }) {
       const route = get(['route']);
       const streetFull = route + (streetNumber ? ', ' + streetNumber : '');
       const neighborhood = get(['sublocality_level_1', 'sublocality', 'neighborhood']);
+      const city = get(['locality', 'administrative_area_level_2', 'administrative_area_level_3']);
       const zip = maskCep(get(['postal_code']));
 
       setAddress((prev) => ({
         ...prev,
         street: streetFull || pred.description,
         neighborhood,
+        city,
         zipCode: zip,
       }));
     } catch {
@@ -224,8 +258,14 @@ export default function AddressStep({ onBackToStore }) {
     setShowNeighList(filtered.length > 0);
   }
 
-  function handleSelectNeighborhood(name) {
-    setAddress((prev) => ({ ...prev, neighborhood: name }));
+  function handleSelectNeighborhood(entry) {
+    const name = typeof entry === 'string' ? entry : entry.name;
+    const city = typeof entry === 'string' ? undefined : entry.city;
+    setAddress((prev) => ({
+      ...prev,
+      neighborhood: name,
+      ...(city ? { city } : {}),
+    }));
     setShowNeighList(false);
     setNeighSuggestions([]);
   }
@@ -246,6 +286,7 @@ export default function AddressStep({ onBackToStore }) {
     setAddress({
       street: `${addr.street}${addr.number ? ', ' + addr.number : ''}${addr.complement ? ' — ' + addr.complement : ''}`,
       neighborhood: addr.neighborhood || '',
+      city: addr.city || '',
       phone: addr.phone || '',
       zipCode: maskCep(addr.zip || ''),
       reference: addr.reference || '',
@@ -309,6 +350,10 @@ export default function AddressStep({ onBackToStore }) {
   }
 
   function handleAdvance() {
+    if (!isAddressInCoverage(address, coverageCities, allNeighborhoods)) {
+      setShowOutsideDialog(true);
+      return;
+    }
     if (!savedAddress) chooseAddress();
     nextStep();
   }
@@ -343,6 +388,7 @@ export default function AddressStep({ onBackToStore }) {
             const route        = get(['route']);
             const streetNumber = get(['street_number']);
             const neighborhood = get(['sublocality_level_1', 'sublocality', 'neighborhood']);
+            const city = get(['locality', 'administrative_area_level_2', 'administrative_area_level_3']);
             const zip          = maskCep(get(['postal_code']));
             const streetFull   = route + (streetNumber ? ', ' + streetNumber : '');
 
@@ -350,6 +396,7 @@ export default function AddressStep({ onBackToStore }) {
               ...prev,
               street: streetFull || json.results[0].formatted_address || '',
               neighborhood,
+              city,
               zipCode: zip,
             }));
           } else {
@@ -558,7 +605,7 @@ export default function AddressStep({ onBackToStore }) {
                     <li key={`${n.city}-${n.name}-${i}`}>
                       <button
                         type="button"
-                        onClick={() => handleSelectNeighborhood(n.name)}
+                        onClick={() => handleSelectNeighborhood(n)}
                         style={{
                           width: '100%', textAlign: 'left', padding: '9px 14px',
                           background: 'none', border: 'none', cursor: 'pointer',
@@ -705,6 +752,13 @@ export default function AddressStep({ onBackToStore }) {
           </button>
         </div>
       </div>
+
+      {showOutsideDialog && (
+        <OutsideAreaDialog
+          coverageCities={coverageCities}
+          onClose={() => setShowOutsideDialog(false)}
+        />
+      )}
     </div>
   );
 }

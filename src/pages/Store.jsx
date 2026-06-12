@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
 import { useCart } from '../context/CartContext';
+import { useStore } from '../context/StoreContext';
 import { formatCurrency } from '../lib/utils';
 import ProductCard from '../components/store/ProductCard';
 import CartSidebar from '../components/store/CartSidebar';
@@ -8,9 +9,12 @@ import Icon from '../components/ui/Icon';
 import '../styles/store.css';
 
 export default function Store({ onOpenAuth }) {
+  const { openTime, closeTime, isOpen } = useStore();
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+
+  const hoursLabel = `${openTime} — ${closeTime}`;
 
   useEffect(() => {
     async function load() {
@@ -55,8 +59,12 @@ export default function Store({ onOpenAuth }) {
               {products.length > 0 && `(+${products.length} itens)`}
             </p>
             <div className="store-status-row">
-              <span className="status-tag-menu">Menu Disponível</span>
-              <span className="status-tag-open">Aberto 07:00 — 23:00</span>
+              <span className="status-tag-menu">
+                {isOpen ? 'Menu Disponível' : 'Menu indisponível'}
+              </span>
+              <span className={isOpen ? 'status-tag-open' : 'status-tag-closed'}>
+                {isOpen ? `Aberto ${hoursLabel}` : `Fechado · Abrimos ${openTime}`}
+              </span>
             </div>
           </div>
 

@@ -23,7 +23,9 @@ No Dashboard → Edge Functions → Secrets (ou CLI):
 | `MP_WEBHOOK_SECRET` | Secret do webhook no painel MP |
 | `GOOGLE_MAPS_API_KEY` | Chave restrita ao domínio prod |
 | `ALLOWED_ORIGINS` | `https://chamaolucca.com.br,https://chamaolucca.netlify.app,http://localhost:5173,http://localhost:5174,http://localhost:3000` |
-| `ALLOW_TEST_ORDERS` | `false` em produção |
+| `ALLOW_TEST_ORDERS` | `false` em produção (obrigatório) |
+
+**Bypass E2E (`place-order`):** com `ALLOW_TEST_ORDERS=true` no secret **e** `test_mode: true` no body da requisição, a função ignora validação de horário de funcionamento e de área de cobertura. Em produção mantenha `ALLOW_TEST_ORDERS=false` — nunca habilite bypass com tráfego real.
 
 Redeploy:
 
@@ -54,9 +56,10 @@ Recuperação de senha por e-mail está no **backlog (BL-002)** — não exposta
 
 1. Conectar repositório GitHub
 2. Build: `npm run build` | Publish: `dist` (já em `netlify.toml`)
-3. Environment variables (também definidas em `netlify.toml` `[build.environment]`):
-   - `VITE_SUPABASE_URL` = `https://wjkytzvgbvkcaqjrqsbu.supabase.co`
-   - `VITE_SUPABASE_ANON_KEY` = anon key do projeto
+3. **Environment variables** — configurar no painel Netlify (**Site settings → Environment variables**), não no repositório:
+   - `VITE_SUPABASE_URL` = URL do projeto Supabase (ex.: `https://wjkytzvgbvkcaqjrqsbu.supabase.co`)
+   - `VITE_SUPABASE_ANON_KEY` = anon key do projeto (Dashboard Supabase → Settings → API)
+   - Definir em **Production** (e **Preview**, se builds de PR precisarem do backend)
 4. Deploy e validar: `npm run go-live:status`
 
 ## 3. Admin e catálogo
