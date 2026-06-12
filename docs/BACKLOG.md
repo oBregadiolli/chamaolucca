@@ -61,8 +61,8 @@ Documento PDF em português, linguagem simples, para o **cliente final** (stakeh
 | Histórico de pedidos no perfil | ✅ Disponível | |
 | Endereços salvos no perfil | ✅ Disponível | |
 | Alterar senha (logado) | ✅ Disponível | |
-| Esqueci minha senha (e-mail) | 🔜 **EM BREVE** | E-mail enviado; tela dedicada de nova senha ainda não pronta |
-| Termos de uso e privacidade | 🔜 **EM BREVE** | Links existem; páginas legais ainda não publicadas |
+| Esqueci minha senha (e-mail) | ✅ Disponível | E-mail Supabase → `/redefinir-senha` |
+| Termos de uso e privacidade | ✅ Disponível | `/termos` e `/privacidade` |
 | App instalável (PWA) | 💡 Podemos ter | |
 | Notificações por WhatsApp/SMS do pedido | 💡 Podemos ter | |
 | Programa de fidelidade / pontos | 💡 Podemos ter | |

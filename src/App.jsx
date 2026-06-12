@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Outlet, useOutletContext } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { StoreProvider } from './context/StoreContext';
@@ -34,16 +34,40 @@ import AdminRouteDetail from './admin/pages/AdminRouteDetail';
 import AdminDrivers from './admin/pages/AdminDrivers';
 import AdminGeocoding from './admin/pages/AdminGeocoding';
 
-export default function App() {
+function StorefrontLayout() {
   const [authOpen, setAuthOpen] = useState(false);
+  const openAuth = () => setAuthOpen(true);
 
+  return (
+    <>
+      <Header onOpenAuth={openAuth} />
+
+      {authOpen && <AuthModal onClose={() => setAuthOpen(false)} />}
+
+      <CartPanel onOpenAuth={openAuth} />
+      <MobileCartBar />
+
+      <main>
+        <Outlet context={{ openAuth }} />
+      </main>
+
+      <Footer />
+    </>
+  );
+}
+
+function StorePage() {
+  const { openAuth } = useOutletContext();
+  return <Store onOpenAuth={openAuth} />;
+}
+
+export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
         <CartProvider>
           <StoreProvider>
             <Routes>
-              {/* ── Admin routes (no Header/Footer) ── */}
               <Route
                 path="/admin/*"
                 element={
@@ -53,55 +77,31 @@ export default function App() {
                 }
               >
                 <Route index element={<AdminDashboard />} />
-                <Route path="pedidos"        element={<AdminOrders />} />
-                <Route path="produtos"       element={<AdminProducts />} />
-                <Route path="categorias"     element={<AdminCategories />} />
-                <Route path="configuracoes"  element={<AdminSettings />} />
-                <Route path="cupons"         element={<AdminCoupons />} />
-                <Route path="agenda"         element={<AdminDeliveryExceptions />} />
-                <Route path="rotas"          element={<AdminRoutes />} />
-                <Route path="rotas/:id"       element={<AdminRouteDetail />} />
-                <Route path="entregadores"     element={<AdminDrivers />} />
+                <Route path="pedidos" element={<AdminOrders />} />
+                <Route path="produtos" element={<AdminProducts />} />
+                <Route path="categorias" element={<AdminCategories />} />
+                <Route path="configuracoes" element={<AdminSettings />} />
+                <Route path="cupons" element={<AdminCoupons />} />
+                <Route path="agenda" element={<AdminDeliveryExceptions />} />
+                <Route path="rotas" element={<AdminRoutes />} />
+                <Route path="rotas/:id" element={<AdminRouteDetail />} />
+                <Route path="entregadores" element={<AdminDrivers />} />
                 <Route path="geocodificacao" element={<AdminGeocoding />} />
                 <Route path="*" element={<NotFound />} />
               </Route>
 
-              {/* ── Storefront routes ── */}
-              <Route
-                path="/*"
-                element={
-                  <>
-                    <Header onOpenAuth={() => setAuthOpen(true)} />
-
-                    {authOpen && (
-                      <AuthModal onClose={() => setAuthOpen(false)} />
-                    )}
-
-                    <CartPanel onOpenAuth={() => setAuthOpen(true)} />
-                    <MobileCartBar />
-
-                    <main>
-                      <Routes>
-                        <Route path="/" element={<Home />} />
-                        <Route
-                          path="/loja"
-                          element={<Store onOpenAuth={() => setAuthOpen(true)} />}
-                        />
-                        <Route path="/perfil" element={<Profile />} />
-                        <Route path="/redefinir-senha" element={<ResetPassword />} />
-                        <Route path="/termos" element={<Terms />} />
-                        <Route path="/privacidade" element={<Privacy />} />
-                        <Route path="/checkout" element={<Checkout />} />
-                        <Route path="/pedido/:id" element={<OrderConfirmation />} />
-                        <Route path="/item/:productId" element={<ProductDetail />} />
-                        <Route path="*" element={<NotFound />} />
-                      </Routes>
-                    </main>
-
-                    <Footer />
-                  </>
-                }
-              />
+              <Route element={<StorefrontLayout />}>
+                <Route path="/" element={<Home />} />
+                <Route path="/loja" element={<StorePage />} />
+                <Route path="/perfil" element={<Profile />} />
+                <Route path="/redefinir-senha" element={<ResetPassword />} />
+                <Route path="/termos" element={<Terms />} />
+                <Route path="/privacidade" element={<Privacy />} />
+                <Route path="/checkout" element={<Checkout />} />
+                <Route path="/pedido/:id" element={<OrderConfirmation />} />
+                <Route path="/item/:productId" element={<ProductDetail />} />
+                <Route path="*" element={<NotFound />} />
+              </Route>
             </Routes>
           </StoreProvider>
         </CartProvider>
