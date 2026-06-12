@@ -55,7 +55,7 @@ Deno.serve(async (req) => {
     const preference: Record<string, unknown> = {
       items: mpItems,
       payer: {
-        email: payer_email || 'cliente@chamaolucca.com',
+        email: payer_email || 'cliente@chamaolucca.com.br',
         name: payer_name || 'Cliente',
       },
       external_reference: String(order_id),

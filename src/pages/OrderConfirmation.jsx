@@ -4,7 +4,6 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { formatCurrency, formatDate, mpPaymentMethod } from '../lib/utils';
 import Icon from '../components/ui/Icon';
-import '../styles/checkout.css';
 import '../styles/order-confirmation.css';
 
 /* ── Order status pipeline ────────────────────── */
@@ -309,7 +308,7 @@ export default function OrderConfirmation() {
           order_id:     order.id,
           order_number: order.order_number,
           items:        itemsPayload,
-          payer_email:  user.email ?? `${user.id}@chamaolucca.com`,
+          payer_email:  user.email ?? `${user.id}@chamaolucca.com.br`,
           payer_name:   'Cliente',
           shipping:     order.shipping ?? 0,
           app_url:      appUrl,

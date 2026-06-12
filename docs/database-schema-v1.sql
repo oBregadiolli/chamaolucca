@@ -533,4 +533,4 @@ ON CONFLICT DO NOTHING;
 -- 1. create-mp-preference  → cria preferencia de pagamento no Mercado Pago
 -- 2. optimize-route        → otimiza ordem das paradas via Google Maps API
 -- 3. geocode-address       → geocodifica enderecos dos pedidos
--- 4. place-order (TODO)    → recalcula preco server-side (ainda nao existe)
+-- 4. place-order          → recalcula preco server-side (implementada — supabase/functions/place-order/index.ts)

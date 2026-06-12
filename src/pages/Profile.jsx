@@ -397,7 +397,7 @@ export default function Profile() {
           order_id:     selectedOrder.id,
           order_number: selectedOrder.order_number,
           items,
-          payer_email:  user.email ?? `${user.id}@chamaolucca.com`,
+          payer_email:  user.email ?? `${user.id}@chamaolucca.com.br`,
           payer_name:   'Cliente',
           shipping:     selectedOrder.shipping ?? 0,
           app_url:        appUrl,

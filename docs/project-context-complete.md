@@ -194,7 +194,7 @@ src/
 | 4 | `places-autocomplete` | AddressStep.jsx | `fetch POST` | `{ input: string }` |
 | 5 | `place-details` | AddressStep.jsx | `fetch POST` | `{ place_id: string }` |
 | 6 | `fetch-neighborhoods` | AdminSettings.jsx | `fetch POST` | `{ city: string }` |
-| 7 | `place-order` | **NAO EXISTE (TODO)** | — | Deveria receber cart_id + coupon_code + delivery_data |
+| 7 | `place-order` | Checkout.jsx | `supabase.functions.invoke()` | `{ cart_id, coupon_code?, delivery_data, payment_method, test_mode? }` |
 
 ---
 

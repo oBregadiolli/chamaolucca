@@ -1,5 +1,10 @@
 import bemvindoLogo from '../../assets/imagensNovas/BEMVINDO.png';
 
+// TODO(dono): confirmar @ oficial
+const SOCIAL_LINKS = {
+  instagram: 'https://instagram.com/CONFIRMAR_HANDLE',
+};
+
 export default function Footer() {
   return (
     <footer className="lp-footer">
@@ -18,7 +23,7 @@ export default function Footer() {
         {/* Direita — Instagram (topo) + Assinatura Lucca (base) */}
         <div className="lp-footer-right">
           <a
-            href="https://instagram.com"
+            href={SOCIAL_LINKS.instagram}
             target="_blank"
             rel="noopener noreferrer"
             className="lp-footer-insta"

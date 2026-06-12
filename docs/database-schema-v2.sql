@@ -641,4 +641,4 @@ ON CONFLICT DO NOTHING;
 -- 4. places-autocomplete    → Autocomplete de enderecos Google Places
 -- 5. place-details          → Detalhes de um place_id Google Places
 -- 6. fetch-neighborhoods    → Busca bairros via IBGE
--- 7. place-order (TODO)     → Recalcula preco server-side (SEGURANCA)
+-- 7. place-order          → Recalcula preco server-side (implementada — supabase/functions/place-order/index.ts)

@@ -176,10 +176,31 @@ Ideias para a seção final do PDF — **não são promessas**, são evoluções
 
 ---
 
+## Dívida técnica — lint (admin e legado)
+
+Erros ESLint pré-existentes **fora do escopo** de correção imediata; tratar em sprint de manutenção admin:
+
+| Arquivo | Problemas |
+|---------|-----------|
+| `src/admin/pages/AdminDeliveryExceptions.jsx` | `effectiveMax` não usado; `setState` em effect |
+| `src/admin/pages/AdminDrivers.jsx` | parâmetro `e` não usado |
+| `src/admin/pages/AdminOrders.jsx` | imports/handlers/vars não usados |
+| `src/admin/pages/AdminRouteDetail.jsx` | parâmetro `e` não usado |
+| `src/admin/pages/AdminSettings.jsx` | `savingSlots` / `setSavingSlots` não usados |
+| `src/components/cart/CartPanel.jsx` | import `logobylucca` não usado |
+| `src/components/landing/HeroSection.jsx` | prop `onOpenAuth` não usada |
+| `src/context/AuthContext.jsx` | `react-refresh/only-export-components` |
+| `src/context/CartContext.jsx` | `react-refresh/only-export-components` |
+| `src/context/CheckoutContext.jsx` | `react-refresh/only-export-components` |
+| `src/context/StoreContext.jsx` | `react-refresh/only-export-components` |
+
+---
+
 ## Histórico
 
 | Data | Alteração |
 |------|-----------|
+| 2026-06-11 | Dívida técnica ESLint admin/contexts documentada |
 | 2026-06-12 | BL-002 e-mail auth; MVP sem envio de e-mail no cadastro/recuperação |
 | 2026-06-11 | Criado backlog; BL-001 manual PDF |
 | 2026-06-11 | BL-001: matriz ✅ / 🔜 EM BREVE / 💡 podemos ter |

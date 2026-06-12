@@ -14,7 +14,7 @@
 | 5 | `place-details` | ✅ Ativo | AddressStep.jsx | Endereco |
 | 6 | `fetch-neighborhoods` | ✅ Ativo | AdminSettings.jsx | Dados IBGE |
 | 7 | `reverse-geocode` | ✅ Ativo | AddressStep.jsx | Geolocalização |
-| 8 | `place-order` | ❌ TODO | — | Seguranca |
+| 8 | `place-order` | ✅ Ativo | Checkout.jsx | Seguranca |
 
 ---
 
@@ -39,7 +39,7 @@
   "payer_email": "cliente@email.com",
   "payer_name": "Nome do Cliente",
   "shipping": 4.00,
-  "app_url": "https://chamaolucca.com",
+  "app_url": "https://chamaolucca.com.br",
   "payment_method": "pix"
 }
 ```
@@ -218,39 +218,77 @@
 
 ---
 
-## 7. place-order (TODO — NAO IMPLEMENTADA)
+## 8. place-order
 
-**Proposito:** Recalcular precos server-side para evitar manipulacao pelo cliente.
+**Proposito:** Cria o pedido no banco recalculando precos, cupom, frete e horario de funcionamento no servidor (evita manipulacao pelo cliente).
 
-**Status:** ❌ Nao implementada. Referenciada no security-audit.md como ITEM 01 (CRITICO).
+**Metodo de chamada:** `supabase.functions.invoke('place-order', { body })`
 
-**Payload esperado:**
+**Autenticacao:** JWT obrigatorio no header `Authorization` (usuario deve ser dono do carrinho).
+
+**Payload (Request):**
 ```json
 {
   "cart_id": "uuid",
   "coupon_code": "DESCONTO10",
   "delivery_data": {
     "address": "Rua A, 123",
+    "complement": "Apto 2",
     "neighborhood": "Centro",
     "phone": "75999999999",
     "zip_code": "48000-000",
+    "reference": "Proximo ao mercado",
     "delivery_date": "2026-06-15",
     "delivery_time": "08:00-10:00",
     "delivery_mode": "scheduled"
   },
-  "payment_method": "pix"
+  "payment_method": "pix",
+  "test_mode": false
 }
 ```
 
-**O que deve fazer:**
-1. Buscar cart_items + products.price do banco (service_role)
-2. Recalcular subtotal = SUM(products.price * quantity)
-3. Validar cupom server-side (active, max_uses, expires_at)
-4. Calcular desconto server-side
-5. Calcular frete server-side (via store_settings)
-6. Inserir orders + order_items com precos reais
-7. Incrementar coupon uses_count
-8. Retornar order criada
+**Campos obrigatorios:** `cart_id`, `delivery_data.address`, `payment_method`.
+
+**Response de sucesso (200):**
+```json
+{
+  "ok": true,
+  "order": { "id": "uuid", "order_number": 1000, "total": 42.50, "payment_status": "pending", "...": "..." },
+  "items": [
+    { "title": "Banana Prata", "quantity": 2, "unit_price": 5.99 }
+  ],
+  "subtotal": 38.50,
+  "shipping": 4.00,
+  "discount": 0,
+  "total": 42.50,
+  "test_mode": false
+}
+```
+
+**Response de erro:**
+```json
+{
+  "ok": false,
+  "error": "Descricao do erro"
+}
+```
+
+**Codigos HTTP comuns:** `401` (nao autenticado), `403` (carrinho de outro usuario / test_mode desabilitado), `400` (carrinho vazio, loja fechada, cupom invalido, produto indisponivel), `500` (erro interno).
+
+**Fluxo server-side:**
+1. Valida JWT e propriedade do carrinho (`carts.user_id`, status `active`)
+2. Carrega `cart_items` + precos atuais de `products` (usa `promotional_price` quando menor)
+3. Valida cupom (`active`, `expires_at`, `max_uses`, `min_order`) e calcula desconto
+4. Le `store_settings` — bloqueia se fora do horario (`open_time` / `close_time`)
+5. Calcula frete (`shipping_fee`, frete gratis se `free_shipping_active`)
+6. Insere `orders` + `order_items`, incrementa uso do cupom (`increment_coupon_use`)
+7. Marca carrinho como `converted` e esvazia `cart_items`
+8. Se `test_mode: true` e `ALLOW_TEST_ORDERS=true`, aprova pagamento de teste
+
+**Chamado de:**
+- `src/pages/Checkout.jsx` — ao finalizar pedido (antes de `create-mp-preference`)
+
+**Implementacao:** `supabase/functions/place-order/index.ts`
 
 ---
 
