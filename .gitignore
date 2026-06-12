@@ -30,3 +30,11 @@ dist-ssr
 
 # Supabase CLI local state
 supabase/.temp/
+
+# E2E / Playwright artifacts (generated locally)
+scripts/e2e-prod-report/
+playwright-report/
+test-results/
+blob-report/
+.playwright/
+tmp-*.html
