@@ -35,6 +35,8 @@ Data: 11/06/2026 | Status: **MVP — hardening aplicado no código; deploy/secre
 
 ## Pós-deploy (painéis)
 
+- [ ] **Anon key exposta no histórico git** — a chave `VITE_SUPABASE_ANON_KEY` esteve commitada em `netlify.toml`. Após mover as env vars para o painel Netlify, **rotacionar a anon key** no Dashboard Supabase (Settings → API → Rotate). Ação manual do dono do projeto; não automatizar pelo repositório.
+
 - [ ] Aplicar migration 006 no projeto Supabase (`node scripts/apply-supabase-schema.mjs`)
 - [ ] Redeploy edges (`node scripts/deploy-edge-functions.mjs`)
 - [ ] Secrets Supabase: `ALLOWED_ORIGINS`, `MP_WEBHOOK_SECRET`, `ALLOW_TEST_ORDERS=false` em prod

@@ -42,7 +42,16 @@ export function createReporter(planName) {
 
 const PROJECT_REF = 'wjkytzvgbvkcaqjrqsbu';
 const E2E_EMAIL = process.env.E2E_USER_EMAIL ?? 'e2e.chamaolucca@example.com';
-const E2E_PASSWORD = process.env.E2E_USER_PASSWORD ?? 'ChamaOLucca_E2E_2026!';
+
+function requireE2EPassword() {
+  const password = process.env.E2E_USER_PASSWORD?.trim();
+  if (!password) {
+    throw new Error(
+      'E2E_USER_PASSWORD não definida. Configure a variável de ambiente antes de rodar os testes E2E (não use senha padrão no código).',
+    );
+  }
+  return password;
+}
 
 async function fetchServiceRoleKey() {
   if (process.env.SUPABASE_SERVICE_ROLE_KEY) return process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -57,10 +66,11 @@ async function fetchServiceRoleKey() {
 }
 
 async function signInWithPassword(URL, ANON) {
+  const password = requireE2EPassword();
   const res = await fetch(`${URL}/auth/v1/token?grant_type=password`, {
     method: 'POST',
     headers: { apikey: ANON, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ email: E2E_EMAIL, password: E2E_PASSWORD }),
+    body: JSON.stringify({ email: E2E_EMAIL, password }),
   });
   if (!res.ok) return null;
   return res.json();
@@ -83,7 +93,7 @@ export async function getE2ESession(URL, ANON) {
     },
     body: JSON.stringify({
       email: E2E_EMAIL,
-      password: E2E_PASSWORD,
+      password: requireE2EPassword(),
       email_confirm: true,
       user_metadata: { name: 'E2E ChamaOLucca', phone: '75999999999' },
     }),

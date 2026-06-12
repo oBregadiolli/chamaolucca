@@ -16,10 +16,10 @@
     "go-live:auth-email": "node scripts/configure-auth-email.mjs"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.100.1",
+    "@supabase/supabase-js": "^2.108.1",
     "react": "^19.2.4",
     "react-dom": "^19.2.4",
-    "react-router-dom": "^7.13.2"
+    "react-router-dom": "^7.17.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.4",
