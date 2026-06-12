@@ -5,10 +5,7 @@
 # VITE_SUPABASE_URL e VITE_SUPABASE_ANON_KEY NÃO ficam aqui — configure no painel
 # Netlify: Site settings → Environment variables (Production + Preview conforme necessário).
 
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
+# SPA fallback: public/_redirects (/* /index.html 200). Não duplicar [[redirects]] aqui.
 
 [[headers]]
   for = "/*"

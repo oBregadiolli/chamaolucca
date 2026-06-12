@@ -1232,71 +1232,6 @@ textarea {
 }
 
 /* ============================================
-   Landing / Hero
-   ============================================ */
-.hero {
-  background: linear-gradient(
-    135deg,
-    var(--green-600) 0%,
-    var(--green-700) 100%
-  );
-  color: var(--white);
-  padding: var(--space-3xl) 0;
-  text-align: center;
-  position: relative;
-  overflow: hidden;
-}
-
-.hero::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  left: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(
-    circle,
-    rgba(255, 255, 255, 0.08) 0%,
-    transparent 60%
-  );
-  animation: heroGlow 15s ease-in-out infinite;
-}
-
-.hero-content {
-  position: relative;
-  z-index: 1;
-  max-width: 600px;
-  margin: 0 auto;
-  padding: 0 var(--space-md);
-}
-
-.hero h1 {
-  font-size: var(--font-4xl);
-  font-weight: 800;
-  margin-bottom: var(--space-md);
-  line-height: 1.1;
-}
-
-.hero p {
-  font-size: var(--font-lg);
-  opacity: 0.9;
-  margin-bottom: var(--space-xl);
-  line-height: 1.6;
-}
-
-.hero .btn-primary {
-  background: var(--white);
-  color: var(--green-700);
-  font-size: var(--font-lg);
-  padding: 16px 40px;
-}
-
-.hero .btn-primary:hover {
-  background: var(--green-50);
-  box-shadow: var(--shadow-lg);
-}
-
-/* ============================================
    Features Section
    ============================================ */
 .features {
@@ -2015,10 +1950,6 @@ textarea {
    Responsive
    ============================================ */
 @media (max-width: 768px) {
-  .hero h1 {
-    font-size: var(--font-3xl);
-  }
-
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -2041,10 +1972,6 @@ textarea {
 }
 
 @media (max-width: 480px) {
-  .hero h1 {
-    font-size: var(--font-2xl);
-  }
-
   .products-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: var(--space-sm);
