@@ -27,6 +27,10 @@ export default function ProductCard({ product }) {
             <img
               src={product.image_url}
               alt={product.name}
+              width={400}
+              height={200}
+              loading="lazy"
+              decoding="async"
               style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
               onError={(e) => {
                 e.currentTarget.style.display = 'none';

@@ -163,6 +163,10 @@ function ComboCard({ products }) {
               key={p.id}
               src={p.image_url}
               alt={p.name}
+              width={36}
+              height={36}
+              loading="lazy"
+              decoding="async"
               style={{ width: 36, height: 36, objectFit: 'cover', borderRadius: 6 }}
               onError={(e) => { e.currentTarget.style.display = 'none'; }}
             />
@@ -176,8 +180,10 @@ function ComboCard({ products }) {
       <div className="combo-name">{names}</div>
       <div className="combo-price">{formatCurrency(total)} cada</div>
       <button
+        type="button"
         className="product-add-dark"
         onClick={() => combo.forEach((p) => addItem(p))}
+        aria-label={`Adicionar combo ao carrinho: ${names}`}
       >
         <Icon name="shopping_cart" size={22} fill />
       </button>

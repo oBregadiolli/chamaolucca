@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, startTransition } from 'react';
 import { BrowserRouter, Routes, Route, Outlet, useOutletContext, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -43,11 +43,12 @@ function StorefrontLayout() {
 
   useEffect(() => {
     if (location.state?.authNotice) {
-      setAuthNotice(location.state.authNotice);
+      const notice = location.state.authNotice;
       navigate(
         { pathname: location.pathname, search: location.search },
         { replace: true, state: {} },
       );
+      startTransition(() => setAuthNotice(notice));
     }
   }, [location.state, location.pathname, location.search, navigate]);
 

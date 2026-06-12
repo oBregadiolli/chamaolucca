@@ -51,6 +51,10 @@ const CATEGORIES = [
 
 const SCROLL_AMOUNT = 320;
 
+function altFromLabel(label) {
+  return label.replace(/\n/g, ' ');
+}
+
 export default function CategoriesSection() {
   const rowRef = useRef(null);
 
@@ -81,7 +85,15 @@ export default function CategoriesSection() {
               {CATEGORIES.map(({ id, label, img }) => (
                 <Link key={id} to="/loja" className="lp-category-item">
                   <div className="lp-category-icon" aria-hidden="true">
-                    <img src={img} alt={label} className="lp-category-img" />
+                    <img
+                      src={img}
+                      alt={altFromLabel(label)}
+                      className="lp-category-img"
+                      width={68}
+                      height={68}
+                      loading="lazy"
+                      decoding="async"
+                    />
                   </div>
                   <span className="lp-category-label">{label}</span>
                 </Link>

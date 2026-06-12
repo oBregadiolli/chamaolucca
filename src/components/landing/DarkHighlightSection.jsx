@@ -24,6 +24,10 @@ export default function DarkHighlightSection() {
             src={celularImg}
             alt="App ChamaoLucca no celular"
             className="lp-dark-phone-img"
+            width={726}
+            height={1457}
+            loading="lazy"
+            decoding="async"
           />
         </div>
       </div>

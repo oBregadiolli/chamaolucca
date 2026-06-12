@@ -93,7 +93,6 @@ export function CartProvider({ children }) {
       setUserId(uid);
     });
     return () => subscription.unsubscribe();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // ── Carrega/merge carrinho ao logar ───────────────────
@@ -287,13 +286,11 @@ export function CartProvider({ children }) {
       syncUpsert(product.id, newQty, product.price);
       return next;
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const removeItem = useCallback((productId) => {
     setItems((prev) => prev.filter((item) => item.id !== productId));
     syncDelete(productId);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const updateQuantity = useCallback((productId, quantity) => {
@@ -310,14 +307,12 @@ export function CartProvider({ children }) {
       if (item) syncUpsert(productId, quantity, item.price);
       return next;
     });
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const clearCart = useCallback(() => {
     setItems([]);
     clearLS();
     syncClearAll();
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const dismissSyncFailure = useCallback(() => setSyncFailure(false), []);

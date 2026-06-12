@@ -171,11 +171,12 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
               <div className="auth-body">
                 <MercadoLogo />
 
-                {error && <p className="auth-error">{error}</p>}
+                {error && <p className="auth-error" role="alert">{error}</p>}
 
                 <div className="auth-field">
-                  <label className="auth-label">Seu e-mail</label>
+                  <label className="auth-label" htmlFor="auth-login-email">Seu e-mail</label>
                   <input
+                    id="auth-login-email"
                     className="auth-input"
                     type="email"
                     name="email"
@@ -188,8 +189,9 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
                 </div>
 
                 <div className="auth-field">
-                  <label className="auth-label">Sua senha</label>
+                  <label className="auth-label" htmlFor="auth-login-password">Sua senha</label>
                   <input
+                    id="auth-login-password"
                     className="auth-input"
                     type="password"
                     name="password"
@@ -234,11 +236,12 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
           {view === 'register' && (
             <>
               <div className="auth-body">
-                {error && <p className="auth-error">{error}</p>}
+                {error && <p className="auth-error" role="alert">{error}</p>}
 
                 <div className="auth-field">
-                  <label className="auth-label">E-mail de acesso</label>
+                  <label className="auth-label" htmlFor="auth-register-email">E-mail de acesso</label>
                   <input
+                    id="auth-register-email"
                     className="auth-input"
                     type="email"
                     name="email"
@@ -251,8 +254,9 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
                 </div>
 
                 <div className="auth-field">
-                  <label className="auth-label">Seu nome</label>
+                  <label className="auth-label" htmlFor="auth-register-name">Seu nome</label>
                   <input
+                    id="auth-register-name"
                     className="auth-input"
                     type="text"
                     name="name"
@@ -264,8 +268,9 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
                 </div>
 
                 <div className="auth-field">
-                  <label className="auth-label">Telefone para Contato</label>
+                  <label className="auth-label" htmlFor="auth-register-phone">Telefone para Contato</label>
                   <input
+                    id="auth-register-phone"
                     className="auth-input"
                     type="tel"
                     name="phone"
@@ -278,8 +283,9 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
                 </div>
 
                 <div className="auth-field">
-                  <label className="auth-label">Sua senha</label>
+                  <label className="auth-label" htmlFor="auth-register-password">Sua senha</label>
                   <input
+                    id="auth-register-password"
                     className="auth-input"
                     type="password"
                     name="password"

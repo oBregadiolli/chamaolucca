@@ -38,7 +38,7 @@ export default function BenefitsSection() {
           {BENEFITS.map(({ id, img, title, text }) => (
             <div key={id} className="lp-benefit-item">
               <div className="lp-benefit-icon">
-                <img src={img} alt={title} className="benefit-icon-img" />
+                <img src={img} alt={title.replace(/\n/g, ' ')} className="benefit-icon-img" />
               </div>
               <h3 className="lp-benefit-title">{title}</h3>
               <p className="lp-benefit-text">{text}</p>
