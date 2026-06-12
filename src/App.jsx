@@ -1,4 +1,4 @@
-import { useState, useEffect, startTransition } from 'react';
+import { useState, useEffect, startTransition, lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route, Outlet, useOutletContext, useLocation, useNavigate } from 'react-router-dom';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
@@ -19,20 +19,28 @@ import Terms from './pages/Terms';
 import Privacy from './pages/Privacy';
 import LegacyPasswordResetRedirect from './pages/LegacyPasswordResetRedirect';
 
-// Admin
+// Admin (code-split — reduz chunk principal da loja)
 import AdminGuard from './admin/AdminGuard';
 import AdminLayout from './admin/AdminLayout';
-import AdminDashboard from './admin/pages/AdminDashboard';
-import AdminOrders from './admin/pages/AdminOrders';
-import AdminProducts from './admin/pages/AdminProducts';
-import AdminCategories from './admin/pages/AdminCategories';
-import AdminSettings from './admin/pages/AdminSettings';
-import AdminCoupons from './admin/pages/AdminCoupons';
-import AdminDeliveryExceptions from './admin/pages/AdminDeliveryExceptions';
-import AdminRoutes from './admin/pages/AdminRoutes';
-import AdminRouteDetail from './admin/pages/AdminRouteDetail';
-import AdminDrivers from './admin/pages/AdminDrivers';
-import AdminGeocoding from './admin/pages/AdminGeocoding';
+const AdminDashboard = lazy(() => import('./admin/pages/AdminDashboard'));
+const AdminOrders = lazy(() => import('./admin/pages/AdminOrders'));
+const AdminProducts = lazy(() => import('./admin/pages/AdminProducts'));
+const AdminCategories = lazy(() => import('./admin/pages/AdminCategories'));
+const AdminSettings = lazy(() => import('./admin/pages/AdminSettings'));
+const AdminCoupons = lazy(() => import('./admin/pages/AdminCoupons'));
+const AdminDeliveryExceptions = lazy(() => import('./admin/pages/AdminDeliveryExceptions'));
+const AdminRoutes = lazy(() => import('./admin/pages/AdminRoutes'));
+const AdminRouteDetail = lazy(() => import('./admin/pages/AdminRouteDetail'));
+const AdminDrivers = lazy(() => import('./admin/pages/AdminDrivers'));
+const AdminGeocoding = lazy(() => import('./admin/pages/AdminGeocoding'));
+
+function AdminRouteFallback() {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '40vh' }}>
+      <div className="spinner" />
+    </div>
+  );
+}
 
 function StorefrontLayout() {
   const [authOpen, setAuthOpen] = useState(false);
@@ -107,17 +115,17 @@ export default function App() {
                   </AdminGuard>
                 }
               >
-                <Route index element={<AdminDashboard />} />
-                <Route path="pedidos" element={<AdminOrders />} />
-                <Route path="produtos" element={<AdminProducts />} />
-                <Route path="categorias" element={<AdminCategories />} />
-                <Route path="configuracoes" element={<AdminSettings />} />
-                <Route path="cupons" element={<AdminCoupons />} />
-                <Route path="agenda" element={<AdminDeliveryExceptions />} />
-                <Route path="rotas" element={<AdminRoutes />} />
-                <Route path="rotas/:id" element={<AdminRouteDetail />} />
-                <Route path="entregadores" element={<AdminDrivers />} />
-                <Route path="geocodificacao" element={<AdminGeocoding />} />
+                <Route index element={<Suspense fallback={<AdminRouteFallback />}><AdminDashboard /></Suspense>} />
+                <Route path="pedidos" element={<Suspense fallback={<AdminRouteFallback />}><AdminOrders /></Suspense>} />
+                <Route path="produtos" element={<Suspense fallback={<AdminRouteFallback />}><AdminProducts /></Suspense>} />
+                <Route path="categorias" element={<Suspense fallback={<AdminRouteFallback />}><AdminCategories /></Suspense>} />
+                <Route path="configuracoes" element={<Suspense fallback={<AdminRouteFallback />}><AdminSettings /></Suspense>} />
+                <Route path="cupons" element={<Suspense fallback={<AdminRouteFallback />}><AdminCoupons /></Suspense>} />
+                <Route path="agenda" element={<Suspense fallback={<AdminRouteFallback />}><AdminDeliveryExceptions /></Suspense>} />
+                <Route path="rotas" element={<Suspense fallback={<AdminRouteFallback />}><AdminRoutes /></Suspense>} />
+                <Route path="rotas/:id" element={<Suspense fallback={<AdminRouteFallback />}><AdminRouteDetail /></Suspense>} />
+                <Route path="entregadores" element={<Suspense fallback={<AdminRouteFallback />}><AdminDrivers /></Suspense>} />
+                <Route path="geocodificacao" element={<Suspense fallback={<AdminRouteFallback />}><AdminGeocoding /></Suspense>} />
                 <Route path="*" element={<NotFound />} />
               </Route>
 
