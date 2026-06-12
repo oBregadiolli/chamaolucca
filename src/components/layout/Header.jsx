@@ -24,6 +24,7 @@ export default function Header({ onOpenAuth }) {
           <Link to="/" className="header-logo" aria-label="ChamaoLucca — ir para início" style={{
             display: 'flex', alignItems: 'center', gap: 6, textDecoration: 'none',
           }}>
+            {/* Mascote decorativo — alt vazio; marca textual em logoBylucca */}
             <img
               src={fotoLaranja}
               alt=""
