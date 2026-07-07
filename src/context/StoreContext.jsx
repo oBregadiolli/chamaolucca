@@ -23,12 +23,15 @@ export function StoreProvider({ children }) {
   }
 
   useEffect(() => {
+    let open  = '07:00';
+    let close = '23:00';
+
     async function fetchSettings() {
       const { data } = await supabase.from('store_settings').select('key, value');
       if (data) {
         const map = Object.fromEntries(data.map((r) => [r.key, r.value]));
-        const open  = map.open_time  || '07:00';
-        const close = map.close_time || '23:00';
+        open  = map.open_time  || '07:00';
+        close = map.close_time || '23:00';
         setOpenTime(open);
         setCloseTime(close);
         if (map.coverage_cities) {
@@ -37,10 +40,10 @@ export function StoreProvider({ children }) {
         if (map.shipping_fee)         setShippingFee(parseFloat(map.shipping_fee) || 4.0);
         if (map.free_shipping_above)  setFreeShippingAbove(parseFloat(map.free_shipping_above) || 0);
         if (map.free_shipping_active) setFreeShippingActive(map.free_shipping_active === 'true');
-        setIsOpen(computeIsOpen(open, close));
       }
       setLoading(false);
     }
+
     fetchSettings();
   }, []);
 

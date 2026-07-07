@@ -69,7 +69,7 @@ function FieldError({ msg }) {
 
 // ─── Product Form Modal ───────────────────────────────────────
 function ProductForm({ product, categories, onSave, onCancel }) {
-  const [form, setForm] = useState(product ?? EMPTY_PRODUCT);
+  const [form, setForm] = useState({ ...EMPTY_PRODUCT, ...(product ?? {}) });
   const [errors, setErrors] = useState({});
   const [saving, setSaving] = useState(false);
   const [globalError, setGlobalError] = useState(null);
@@ -98,7 +98,7 @@ function ProductForm({ product, categories, onSave, onCancel }) {
 
   function validate() {
     const errs = {};
-    if (!form.name.trim()) errs.name = 'Nome é obrigatório.';
+    if (!(form.name ?? '').trim()) errs.name = 'Nome é obrigatório.';
     if (!form.price || Number(form.price) <= 0) errs.price = 'Informe um preço válido.';
     if (form.promotional_price && Number(form.promotional_price) >= Number(form.price)) {
       errs.promotional_price = 'Deve ser menor que o preço normal.';
@@ -180,11 +180,11 @@ function ProductForm({ product, categories, onSave, onCancel }) {
     setGlobalError(null);
     try {
       const payload = {
-        name: form.name.trim(),
-        description: form.description.trim() || null,
+        name: (form.name ?? '').trim(),
+        description: (form.description ?? '').trim() || null,
         price: Number(form.price),
         promotional_price: form.promotional_price ? Number(form.promotional_price) : null,
-        image_url: form.image_url.trim() || null,
+        image_url: (form.image_url ?? '').trim() || null,
         category_id: form.category_id || null,
         unit: form.unit || 'un',
         active: form.active,

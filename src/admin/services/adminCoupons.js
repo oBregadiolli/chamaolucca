@@ -89,11 +89,15 @@ export async function validateCoupon(code, subtotal) {
 
 /** Increment uses_count after order is placed */
 export async function incrementCouponUse(couponId) {
-  await supabase.rpc('increment_coupon_use', { coupon_id: couponId }).catch(() => {
-    // fallback: direct update
-    supabase
-      .from('coupons')
-      .update({ uses_count: supabase.rpc('increment_coupon_use') })
-      .eq('id', couponId);
-  });
+  const { error } = await supabase.rpc('increment_coupon_use', { coupon_id: couponId });
+  if (error) {
+    // Fallback: manual increment via SELECT + UPDATE
+    const { data } = await supabase.from('coupons').select('uses_count').eq('id', couponId).single();
+    if (data != null) {
+      await supabase
+        .from('coupons')
+        .update({ uses_count: (data.uses_count ?? 0) + 1 })
+        .eq('id', couponId);
+    }
+  }
 }
