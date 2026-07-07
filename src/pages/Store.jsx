@@ -45,8 +45,8 @@ export default function Store({ onOpenAuth }) {
     }))
     .filter((g) => g.products.length > 0);
 
-  // Take first 4 products for the featured combo
-  const featuredForCombo = products.slice(0, 4);
+  // Show only products marked as featured in the admin panel
+  const featuredForCombo = products.filter((p) => p.featured);
 
   return (
     <div className="store-wrapper">
