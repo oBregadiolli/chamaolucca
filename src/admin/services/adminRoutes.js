@@ -90,7 +90,7 @@ export function splitOrdersIntoGroups(orders, maxPerGroup = MAX_STOPS_PER_ROUTE)
       if (rest[0].length < maxPerGroup) {
         rest[0].push(...s);
       } else {
-        groups.push(s); // no room, keep as solo
+        rest.push(s); // no room, keep as solo
       }
     }
     return rest;
@@ -217,6 +217,38 @@ export async function updateRouteStatus(routeId, status) {
   return data;
 }
 
+// ─── Cancel route and revert undelivered orders back to 'preparing' ────
+export async function cancelRoute(routeId) {
+  // 1. Fetch stops that are not yet delivered
+  const { data: stops } = await supabase
+    .from('route_stops')
+    .select('order_id, stop_status')
+    .eq('route_id', routeId)
+    .neq('stop_status', 'delivered');
+
+  // 2. Cancel the route
+  const { data, error } = await supabase
+    .from('routes')
+    .update({ status: 'cancelled', updated_at: new Date().toISOString() })
+    .eq('id', routeId)
+    .select()
+    .single();
+  if (error) throw error;
+
+  // 3. Revert undelivered orders back to 'preparing'
+  if (stops?.length) {
+    const ids = stops.map(s => s.order_id).filter(Boolean);
+    if (ids.length) {
+      await supabase
+        .from('orders')
+        .update({ status: 'preparing', updated_at: new Date().toISOString() })
+        .in('id', ids);
+    }
+  }
+
+  return data;
+}
+
 // ─── Update route driver info ─────────────────────────────────────────
 export async function updateRouteDriver(routeId, { driverName, driverPhone }) {
   const { data, error } = await supabase
@@ -246,10 +278,11 @@ export async function updateStopStatus(stopId, stopStatus, orderId) {
   if (stopError) throw stopError;
 
   if (stopStatus === 'delivered' && orderId) {
-    await supabase
+    const { error: orderError } = await supabase
       .from('orders')
       .update({ status: 'delivered', updated_at: new Date().toISOString() })
       .eq('id', orderId);
+    if (orderError) throw orderError;
   }
 
   return stop;

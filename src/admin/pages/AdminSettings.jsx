@@ -125,11 +125,13 @@ export default function AdminSettings() {
       .from('neighborhoods')
       .update({ active: !currentActive })
       .eq('id', id);
-    if (!error) {
-      setNeighborhoods((prev) =>
-        prev.map((n) => (n.id === id ? { ...n, active: !currentActive } : n))
-      );
+    if (error) {
+      showToast('Erro ao atualizar bairro.', 'error');
+      return;
     }
+    setNeighborhoods((prev) =>
+      prev.map((n) => (n.id === id ? { ...n, active: !currentActive } : n))
+    );
   }
 
   // ── Add neighborhood manually ──
@@ -180,10 +182,15 @@ export default function AdminSettings() {
       supabase.from('store_settings').upsert({ key: 'store_lat',            value: storeLat,                        label: 'Latitude da loja (usado na otimização de rotas)'  }, { onConflict: 'key' }),
       supabase.from('store_settings').upsert({ key: 'store_lng',            value: storeLng,                        label: 'Longitude da loja (usado na otimização de rotas)' }, { onConflict: 'key' }),
     ];
-    const results = await Promise.all(updates);
-    setSaving(false);
-    const err = results.find((r) => r.error);
-    showToast(err ? 'Erro ao salvar configurações.' : 'Configurações salvas!', err ? 'error' : 'success');
+    try {
+      const results = await Promise.all(updates);
+      const err = results.find((r) => r.error);
+      showToast(err ? 'Erro ao salvar configurações.' : 'Configurações salvas!', err ? 'error' : 'success');
+    } catch {
+      showToast('Erro inesperado ao salvar.', 'error');
+    } finally {
+      setSaving(false);
+    }
   }
 
   function addCity() {

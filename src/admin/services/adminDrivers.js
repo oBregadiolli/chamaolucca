@@ -76,13 +76,16 @@ export async function toggleDriverActive(driverId, currentActive) {
 // ─── Delete driver (soft: deactivate instead if has routes) ──────────
 export async function deleteDriver(driverId) {
   // Check if driver has routes
-  const { count } = await supabase
+  const { count, error: countError } = await supabase
     .from('routes')
     .select('id', { count: 'exact', head: true })
     .eq('driver_id', driverId);
 
-  if (count > 0) {
-    // Has routes — deactivate instead
+  if (countError) throw countError;
+
+  // Treat null count as unsafe — deactivate instead of delete
+  if (count == null || count > 0) {
+    // Has routes (or count uncertain) — deactivate instead
     return updateDriver(driverId, { active: false });
   }
 

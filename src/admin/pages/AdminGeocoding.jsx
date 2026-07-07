@@ -330,7 +330,7 @@ export default function AdminGeocoding() {
         )}
       </div>
 
-      {!loadingList && stats?.pending > 50 && (
+      {!loadingList && stats?.pending > 100 && (
         <div style={{ fontSize: '0.78rem', color: '#94a3b8', textAlign: 'center', marginTop: 12 }}>
           Exibindo os 100 primeiros. Use "Geocodificar lote" para processar em sequência.
         </div>

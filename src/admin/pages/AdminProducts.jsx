@@ -736,7 +736,7 @@ export default function AdminProducts() {
           {filtered.length} produto(s) encontrado(s)
           {search && <> para "<strong>{search}</strong>"</>}
           {' '}
-          <button className="admin-clear-filters" onClick={() => { setSearch(''); setFilterCategory(''); setFilterActive('all'); }}>
+          <button className="admin-clear-filters" onClick={clearFilters}>
             Limpar filtros
           </button>
         </p>

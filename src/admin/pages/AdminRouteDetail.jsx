@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import Icon from '../../components/ui/Icon';
-import { fetchAllDrivers } from '../services/adminDrivers';
-import { assignDriverToRoute } from '../services/adminDrivers';
+import { assignDriverToRoute, fetchAllDrivers } from '../services/adminDrivers';
 import {
+  cancelRoute,
   fetchRouteById,
   tryCompleteRoute,
   updateRouteStatus,
@@ -196,6 +196,16 @@ export default function AdminRouteDetail() {
     }
   }
 
+  async function handleCancelRoute() {
+    try {
+      await cancelRoute(id);
+      setRoute(r => ({ ...r, status: 'cancelled' }));
+      showToast('Rota cancelada. Pedidos não entregues revertidos para "Preparando".');
+    } catch {
+      showToast('Erro ao cancelar rota.', 'error');
+    }
+  }
+
   async function handleRouteStatusChange(newStatus) {
     try {
       await updateRouteStatus(id, newStatus);
@@ -321,7 +331,7 @@ export default function AdminRouteDetail() {
               <button
                 className="admin-btn admin-btn--ghost"
                 style={{ fontSize: '0.8rem', borderColor: '#dc2626', color: '#dc2626' }}
-                onClick={() => handleRouteStatusChange('cancelled')}
+                onClick={() => handleCancelRoute()}
               >
                 <Icon name="cancel" size={15} /> Cancelar rota
               </button>

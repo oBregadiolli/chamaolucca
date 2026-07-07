@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { fetchAllOrders, fetchOrderById, updateOrderStatus } from '../services/adminOrders';
 import {
-  MAX_STOPS_PER_ROUTE,
+  MAX_API_STOPS, MAX_STOPS_PER_ROUTE,
   buildMapsUrl, callOptimizeRoute, createRoute, createRouteBatch,
   fetchStoreRoutingSettings, generateGroupName, splitOrdersIntoGroups,
 } from '../services/adminRoutes';
@@ -510,7 +510,6 @@ function CreateRouteModal({ selectedOrders, allOrders, onClose, onCreated }) {
   const [optError,      setOptError]      = useState('');
   const [step,          setStep]          = useState('review'); // 'review' | 'generated'
 
-  const MAX_API_STOPS  = 24;  // origin + 23 waypoints + destination = 25 total
   const MAX_LINK_STOPS = 10;  // safe Google Maps URL limit
 
   const nonPreparing   = stops.filter(o => o.status !== 'preparing');
@@ -1032,7 +1031,14 @@ export default function AdminOrders() {
 
   const hasActiveFilters = filterStatus !== 'all' || filterPayment !== 'all' || search.trim();
 
-  function clearFilters() { setFilterStatus('all'); setFilterPayment('all'); setSearch(''); }
+  function clearFilters() { setFilterStatus('all'); setFilterPayment('all'); setSearch(''); setSelection(new Set()); }
+
+  // Troca o filtro de status e limpa a seleção para evitar pedidos de abas
+  // diferentes serem misturados numa mesma rota
+  function changeFilterStatus(val) {
+    setFilterStatus(val);
+    setSelection(new Set());
+  }
 
   useEffect(() => { load(); }, []);
   useEffect(() => {
@@ -1215,7 +1221,7 @@ export default function AdminOrders() {
 
       {/* Status tabs */}
       <div className="admin-status-tabs">
-        <button className={`admin-status-tab ${filterStatus === 'all' ? 'active' : ''}`} onClick={() => setFilterStatus('all')}>
+        <button className={`admin-status-tab ${filterStatus === 'all' ? 'active' : ''}`} onClick={() => changeFilterStatus('all')}>
           Todos <span className="admin-tab-count">{orders.length}</span>
         </button>
         {STATUS_OPTIONS.map(s => (
@@ -1223,7 +1229,7 @@ export default function AdminOrders() {
             key={s.value}
             className={`admin-status-tab ${filterStatus === s.value ? 'active' : ''}`}
             style={filterStatus === s.value ? { borderColor: s.border, color: s.color, background: s.bg } : {}}
-            onClick={() => setFilterStatus(s.value)}
+            onClick={() => changeFilterStatus(s.value)}
           >
             <Icon name={s.icon} size={15} fill style={{ color: filterStatus === s.value ? s.color : undefined }} />
             {s.short}
