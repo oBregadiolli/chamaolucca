@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
-import { fetchAllOrders, fetchOrderById, updateOrderStatus } from '../services/adminOrders';
+import { fetchAllOrders, fetchOrderById, updateOrderStatus, updateOrderStatusWithDriver } from '../services/adminOrders';
 import {
   MAX_API_STOPS, MAX_STOPS_PER_ROUTE,
   buildMapsUrl, callOptimizeRoute, createRoute, createRouteBatch,
@@ -7,6 +7,7 @@ import {
 } from '../services/adminRoutes';
 import { useAuth } from '../../context/AuthContext';
 import Icon from '../../components/ui/Icon';
+import AssignDriverModal from '../components/AssignDriverModal';
 
 // ─── Config ────────────────────────────────────────────────────────────
 const STATUS_OPTIONS = [
@@ -129,7 +130,8 @@ function OrderDetailModal({ orderId, onClose, onStatusUpdated }) {
   const [loading, setLoading] = useState(true);
   const [updating, setUpdating] = useState(false);
   const [toast, setToast] = useState(null);
-  const [pendingStatus, setPendingStatus] = useState(null);
+  const [pendingStatus,       setPendingStatus]       = useState(null);
+  const [pendingDriverStatus, setPendingDriverStatus] = useState(null); // status waiting for driver pick
 
   useEffect(() => {
     fetchOrderById(orderId).then(setOrder).catch(console.error).finally(() => setLoading(false));
@@ -141,12 +143,25 @@ function OrderDetailModal({ orderId, onClose, onStatusUpdated }) {
     return () => document.removeEventListener('keydown', onKey);
   }, [onClose]);
 
-  async function commitStatusChange(newStatus) {
+  async function commitStatusChange(newStatus, driver = undefined) {
     setPendingStatus(null);
+    setPendingDriverStatus(null);
     setUpdating(true);
     try {
-      await updateOrderStatus(orderId, newStatus);
-      setOrder(prev => ({ ...prev, status: newStatus }));
+      if (newStatus === 'delivering' && driver !== undefined) {
+        // driver may be null (skip) or a driver object
+        await updateOrderStatusWithDriver(orderId, newStatus, driver);
+        setOrder(prev => ({
+          ...prev,
+          status:       newStatus,
+          driver_id:    driver?.id    ?? null,
+          driver_name:  driver?.name  ?? null,
+          driver_phone: driver?.phone ?? null,
+        }));
+      } else {
+        await updateOrderStatus(orderId, newStatus);
+        setOrder(prev => ({ ...prev, status: newStatus }));
+      }
       onStatusUpdated?.(orderId, newStatus);
       setToast({ type: 'success', msg: 'Status atualizado!' });
     } catch {
@@ -161,6 +176,7 @@ function OrderDetailModal({ orderId, onClose, onStatusUpdated }) {
     const currentIdx = STATUS_OPTIONS.findIndex(s => s.value === order.status);
     const newIdx     = STATUS_OPTIONS.findIndex(s => s.value === newStatus);
     if (newStatus === 'cancelled' || newIdx < currentIdx) setPendingStatus(newStatus);
+    else if (newStatus === 'delivering') setPendingDriverStatus(newStatus);
     else commitStatusChange(newStatus);
   }
 
@@ -168,6 +184,20 @@ function OrderDetailModal({ orderId, onClose, onStatusUpdated }) {
 
   return (
     <>
+      {/* Driver assignment modal (intercepts 'delivering' transition) */}
+      {pendingDriverStatus && order && (
+        <AssignDriverModal
+          orderLabel={`Pedido #${order.order_number}`}
+          address={[
+            order.delivery_address,
+            order.delivery_complement,
+            order.neighborhood,
+          ].filter(Boolean).join(', ')}
+          onConfirm={(driver) => commitStatusChange(pendingDriverStatus, driver)}
+          onCancel={() => setPendingDriverStatus(null)}
+        />
+      )}
+
       <div className="admin-modal-overlay" onClick={onClose}>
         <div className="admin-modal admin-modal--order" onClick={e => e.stopPropagation()}>
           <div className="admin-modal-header admin-modal-header--colored" style={cfg ? { borderBottom: `3px solid ${cfg.border}` } : {}}>
@@ -217,6 +247,7 @@ function OrderDetailModal({ orderId, onClose, onStatusUpdated }) {
                               const ci = STATUS_OPTIONS.findIndex(x => x.value === order.status);
                               const ni = STATUS_OPTIONS.findIndex(x => x.value === s.value);
                               if (ni < ci) setPendingStatus(s.value);
+                              else if (s.value === 'delivering') setPendingDriverStatus(s.value);
                               else commitStatusChange(s.value);
                             }
                           }}
@@ -275,6 +306,51 @@ function OrderDetailModal({ orderId, onClose, onStatusUpdated }) {
                     </div>
                   </div>
                 </div>
+                {/* Entregador (mostrar quando delivering ou se tiver driver atribuído) */}
+                {(order.status === 'delivering' || order.driver_name) && (
+                  <div className="admin-detail-section">
+                    <h3 className="admin-detail-section-title">
+                      <Icon name="two_wheeler" size={14} fill style={{ marginRight: 4, verticalAlign: 'middle', color: '#7c3aed' }} />
+                      Entregador
+                    </h3>
+                    {order.driver_name ? (
+                      <div style={{
+                        display: 'flex', alignItems: 'center', gap: 12,
+                        padding: '10px 14px', borderRadius: 8,
+                        background: '#f5f3ff', border: '1px solid #ddd6fe',
+                      }}>
+                        <div style={{
+                          width: 36, height: 36, borderRadius: '50%', flexShrink: 0,
+                          background: '#7c3aed',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        }}>
+                          <Icon name="person" size={20} fill style={{ color: '#fff' }} />
+                        </div>
+                        <div style={{ flex: 1 }}>
+                          <div style={{ fontWeight: 700, fontSize: '0.87rem', color: '#5b21b6' }}>{order.driver_name}</div>
+                          {order.driver_phone && <div style={{ fontSize: '0.75rem', color: '#7c3aed' }}>📱 {order.driver_phone}</div>}
+                        </div>
+                        <button
+                          className="admin-btn admin-btn--ghost"
+                          style={{ fontSize: '0.75rem', padding: '4px 10px' }}
+                          onClick={() => setPendingDriverStatus('delivering')}
+                        >
+                          Trocar
+                        </button>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '0.82rem', color: '#94a3b8' }}>
+                        Nenhum entregador atribuído.{' '}
+                        <button
+                          style={{ background: 'none', border: 'none', color: '#7c3aed', fontWeight: 600, cursor: 'pointer', padding: 0 }}
+                          onClick={() => setPendingDriverStatus('delivering')}
+                        >
+                          Atribuir agora
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 <div className="admin-detail-section">
                   <h3 className="admin-detail-section-title">Itens ({order.order_items?.length ?? 0})</h3>
@@ -509,6 +585,7 @@ function CreateRouteModal({ selectedOrders, allOrders, onClose, onCreated }) {
   const [error,         setError]         = useState('');
   const [optError,      setOptError]      = useState('');
   const [step,          setStep]          = useState('review'); // 'review' | 'generated'
+  const [showDriverPick, setShowDriverPick] = useState(false); // open driver modal before confirm
 
   const MAX_LINK_STOPS = 10;  // safe Google Maps URL limit
 

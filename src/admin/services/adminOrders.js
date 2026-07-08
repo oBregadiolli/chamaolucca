@@ -13,6 +13,7 @@ export async function fetchAllOrders() {
       observations, notes, coupon_code, created_at, updated_at,
       payment_status, payment_id, payment_provider, paid_at,
       lat, lng, geocoded_at,
+      driver_id, driver_name, driver_phone,
       user_id,
       profiles:user_id ( id, name, email, phone )
     `)
@@ -36,6 +37,7 @@ export async function fetchOrderById(orderId) {
       observations, notes, coupon_code, created_at, updated_at,
       payment_status, payment_id, payment_provider, paid_at,
       pix_qr_code, pix_expires_at,
+      driver_id, driver_name, driver_phone,
       user_id,
       profiles:user_id ( id, name, email, phone ),
       order_items (
@@ -56,6 +58,28 @@ export async function updateOrderStatus(orderId, status) {
   const { data, error } = await supabase
     .from('orders')
     .update({ status, updated_at: new Date().toISOString() })
+    .eq('id', orderId)
+    .select()
+    .single();
+
+  if (error) throw error;
+  return data;
+}
+
+/**
+ * Update order status to 'delivering' and assign a driver atomically.
+ * driver can be null (no driver assigned).
+ */
+export async function updateOrderStatusWithDriver(orderId, status, driver) {
+  const { data, error } = await supabase
+    .from('orders')
+    .update({
+      status,
+      driver_id:    driver?.id    ?? null,
+      driver_name:  driver?.name  ?? null,
+      driver_phone: driver?.phone ?? null,
+      updated_at:   new Date().toISOString(),
+    })
     .eq('id', orderId)
     .select()
     .single();

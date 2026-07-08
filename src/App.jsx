@@ -23,8 +23,9 @@ import LegacyPasswordResetRedirect from './pages/LegacyPasswordResetRedirect';
 import AdminGuard from './admin/AdminGuard';
 import AdminLayout from './admin/AdminLayout';
 const AdminDashboard = lazy(() => import('./admin/pages/AdminDashboard'));
-const AdminOrders = lazy(() => import('./admin/pages/AdminOrders'));
-const AdminProducts = lazy(() => import('./admin/pages/AdminProducts'));
+const AdminOrders    = lazy(() => import('./admin/pages/AdminOrders'));
+const AdminCustomers = lazy(() => import('./admin/pages/AdminCustomers'));
+const AdminProducts  = lazy(() => import('./admin/pages/AdminProducts'));
 const AdminCategories = lazy(() => import('./admin/pages/AdminCategories'));
 const AdminSettings = lazy(() => import('./admin/pages/AdminSettings'));
 const AdminCoupons = lazy(() => import('./admin/pages/AdminCoupons'));
@@ -116,7 +117,8 @@ export default function App() {
                 }
               >
                 <Route index element={<Suspense fallback={<AdminRouteFallback />}><AdminDashboard /></Suspense>} />
-                <Route path="pedidos" element={<Suspense fallback={<AdminRouteFallback />}><AdminOrders /></Suspense>} />
+                <Route path="pedidos"   element={<Suspense fallback={<AdminRouteFallback />}><AdminOrders    /></Suspense>} />
+                <Route path="clientes"  element={<Suspense fallback={<AdminRouteFallback />}><AdminCustomers /></Suspense>} />
                 <Route path="produtos" element={<Suspense fallback={<AdminRouteFallback />}><AdminProducts /></Suspense>} />
                 <Route path="categorias" element={<Suspense fallback={<AdminRouteFallback />}><AdminCategories /></Suspense>} />
                 <Route path="configuracoes" element={<Suspense fallback={<AdminRouteFallback />}><AdminSettings /></Suspense>} />

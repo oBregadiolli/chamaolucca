@@ -7,6 +7,7 @@ import './admin.css';
 const NAV_ITEMS = [
   { to: '/admin',                  label: 'Dashboard',    icon: 'dashboard',         end: true },
   { to: '/admin/pedidos',          label: 'Pedidos',      icon: 'package_2'                   },
+  { to: '/admin/clientes',         label: 'Clientes',     icon: 'group'                       },
   { to: '/admin/produtos',         label: 'Produtos',     icon: 'inventory_2'                 },
   { to: '/admin/categorias',       label: 'Categorias',   icon: 'label'                       },
   { to: '/admin/configuracoes',    label: 'Configurações', icon: 'settings'                   },
