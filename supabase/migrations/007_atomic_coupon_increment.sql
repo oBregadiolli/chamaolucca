@@ -6,7 +6,11 @@
 -- Retorna TRUE se incrementou, FALSE se o cupom já estava esgotado.
 -- A edge function place-order já trata o retorno FALSE como erro.
 
-create or replace function public.increment_coupon_use(coupon_id uuid)
+-- Necessário: DROP antes do CREATE porque o tipo de retorno mudou de void → boolean.
+-- PostgreSQL não permite alterar o tipo de retorno com CREATE OR REPLACE.
+drop function if exists public.increment_coupon_use(uuid);
+
+create function public.increment_coupon_use(coupon_id uuid)
 returns boolean
 language plpgsql
 security definer
