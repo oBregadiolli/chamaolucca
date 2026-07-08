@@ -305,10 +305,14 @@ export default function AdminGeocoding() {
                             Geocodificado
                           </span>
                         ) : state === 'error' ? (
-                          <span style={{ fontSize: '0.8rem', color: '#dc2626', fontWeight: 600 }}>
-                            <Icon name="error" size={14} fill style={{ marginRight: 4 }} />
-                            Falhou
-                          </span>
+                          <button
+                            className="admin-btn admin-btn--ghost"
+                            style={{ fontSize: '0.78rem', padding: '5px 10px', color: '#dc2626', borderColor: '#fca5a5' }}
+                            onClick={() => handleSingle(order.id)}
+                          >
+                            <Icon name="refresh" size={14} style={{ marginRight: 4 }} />
+                            Tentar novamente
+                          </button>
                         ) : (
                           <button
                             className="admin-btn admin-btn--ghost"

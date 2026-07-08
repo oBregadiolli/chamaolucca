@@ -11,6 +11,7 @@ function buildOrderAddress(order: {
   if (order.delivery_complement) parts.push(order.delivery_complement);
   if (order.neighborhood) parts.push(order.neighborhood);
   parts.push('Alagoinhas', 'BA', 'Brasil');
+  // CEP por último ajuda o Google a disambiguar entre ruas homônimas
   if (order.zip_code) parts.push(order.zip_code);
   return parts.filter(Boolean).join(', ');
 }
@@ -127,7 +128,7 @@ Deno.serve(async (req) => {
     }
 
     const result = await geocodeOne(apiKey, order, Boolean(body.force));
-    return jsonResponse(result, result.ok ? 200 : 400, 200, req);
+    return jsonResponse(result, result.ok ? 200 : 400, req);
   } catch (err) {
     console.error('[geocode-address]', err);
     return jsonResponse({ ok: false, error: String(err) }, 500, req);
