@@ -103,7 +103,7 @@ export default function CartPanel({ onOpenAuth }) {
               <button
                 className="btn btn-secondary btn-sm"
                 style={{ marginTop: '16px' }}
-                onClick={() => { setIsOpen(false); navigate('/'); }}
+                onClick={() => { setIsOpen(false); navigate('/loja'); }}
               >
                 Voltar para a loja
               </button>

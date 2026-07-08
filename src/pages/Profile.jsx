@@ -226,7 +226,7 @@ function OrderDetailDrawer({ order, onClose, onRetry, retrying, retryError }) {
             Ver acompanhamento completo
           </button>
 
-          <button className="od-btn-store" onClick={() => window.location.href = '/loja'}>
+          <button className="od-btn-store" onClick={() => navigate('/loja')}>
             <Icon name="storefront" size={18} />
             Voltar para a loja
           </button>
