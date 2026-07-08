@@ -82,7 +82,10 @@ function effectivePrice(product: ProductRow): number {
 }
 
 function isStoreOpen(openTime: string, closeTime: string, now = new Date()): boolean {
-  const nowMin = now.getHours() * 60 + now.getMinutes();
+  // Store hours are configured in Brasília time (UTC-3). Convert server UTC to BRT.
+  const brtOffsetMs = -3 * 60 * 60 * 1000;
+  const brtNow = new Date(now.getTime() + brtOffsetMs);
+  const nowMin = brtNow.getUTCHours() * 60 + brtNow.getUTCMinutes();
   const [oh, om] = openTime.split(':').map(Number);
   const [ch, cm] = closeTime.split(':').map(Number);
   return nowMin >= oh * 60 + om && nowMin < ch * 60 + cm;
