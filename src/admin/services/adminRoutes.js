@@ -178,11 +178,12 @@ export async function createRoute({
   // 3. Update order statuses to 'delivering' (+ driver if assigned)
   const orderIds = stops.map(s => s.order_id);
   const orderUpdate = {
-    status:       'delivering',
-    updated_at:   new Date().toISOString(),
-    driver_id:    driverId,
-    driver_name:  driverName,
-    driver_phone: driverPhone,
+    status:        'delivering',
+    updated_at:    new Date().toISOString(),
+    delivering_at: new Date().toISOString(),
+    driver_id:     driverId,
+    driver_name:   driverName,
+    driver_phone:  driverPhone,
   };
   const { error: ordersError } = await supabase
     .from('orders')

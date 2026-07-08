@@ -14,6 +14,7 @@ export async function fetchAllOrders() {
       payment_status, payment_id, payment_provider, paid_at,
       lat, lng, geocoded_at,
       driver_id, driver_name, driver_phone,
+      preparing_at, delivering_at, delivered_at, cancelled_at,
       user_id,
       profiles:user_id ( id, name, email, phone )
     `)
@@ -38,6 +39,7 @@ export async function fetchOrderById(orderId) {
       payment_status, payment_id, payment_provider, paid_at,
       pix_qr_code, pix_expires_at,
       driver_id, driver_name, driver_phone,
+      preparing_at, delivering_at, delivered_at, cancelled_at,
       user_id,
       profiles:user_id ( id, name, email, phone ),
       order_items (
@@ -51,13 +53,23 @@ export async function fetchOrderById(orderId) {
   return data;
 }
 
+// Returns which timestamp column to stamp for a given status
+function statusTimestampField(status) {
+  const map = { preparing: 'preparing_at', delivering: 'delivering_at', delivered: 'delivered_at', cancelled: 'cancelled_at' };
+  return map[status] ?? null;
+}
+
 /**
- * Update order status.
+ * Update order status, stamping the correct timestamp column.
  */
 export async function updateOrderStatus(orderId, status) {
+  const now = new Date().toISOString();
+  const tsField = statusTimestampField(status);
+  const patch = { status, updated_at: now, ...(tsField ? { [tsField]: now } : {}) };
+
   const { data, error } = await supabase
     .from('orders')
-    .update({ status, updated_at: new Date().toISOString() })
+    .update(patch)
     .eq('id', orderId)
     .select()
     .single();
@@ -71,6 +83,8 @@ export async function updateOrderStatus(orderId, status) {
  * driver can be null (no driver assigned).
  */
 export async function updateOrderStatusWithDriver(orderId, status, driver) {
+  const now = new Date().toISOString();
+  const tsField = statusTimestampField(status);
   const { data, error } = await supabase
     .from('orders')
     .update({
@@ -78,7 +92,8 @@ export async function updateOrderStatusWithDriver(orderId, status, driver) {
       driver_id:    driver?.id    ?? null,
       driver_name:  driver?.name  ?? null,
       driver_phone: driver?.phone ?? null,
-      updated_at:   new Date().toISOString(),
+      updated_at:   now,
+      ...(tsField ? { [tsField]: now } : {}),
     })
     .eq('id', orderId)
     .select()

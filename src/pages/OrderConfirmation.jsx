@@ -8,12 +8,17 @@ import '../styles/order-confirmation.css';
 
 /* ── Order status pipeline ────────────────────── */
 const STATUS_PIPELINE = [
-  { key: 'received',   icon: 'receipt_long',   label: 'Pedido recebido',  desc: 'Confirmamos seu pedido com sucesso' },
-  { key: 'preparing',  icon: 'soup_kitchen',   label: 'Em preparação',    desc: 'Estamos separando seus itens'       },
-  { key: 'delivering', icon: 'local_shipping', label: 'Em entrega',       desc: 'A caminho da sua casa'              },
-  { key: 'delivered',  icon: 'home',           label: 'Entregue',         desc: 'Bom proveito! ッ'                   },
+  { key: 'received',   icon: 'receipt_long',   label: 'Pedido recebido',  desc: 'Confirmamos seu pedido com sucesso', tsField: 'created_at'   },
+  { key: 'preparing',  icon: 'soup_kitchen',   label: 'Em preparação',    desc: 'Estamos separando seus itens',       tsField: 'preparing_at' },
+  { key: 'delivering', icon: 'local_shipping', label: 'Em entrega',       desc: 'A caminho da sua casa',              tsField: 'delivering_at' },
+  { key: 'delivered',  icon: 'home',           label: 'Entregue',         desc: 'Bom proveito! ッ',                   tsField: 'delivered_at'  },
 ];
 const STATUS_IDX = { received: 0, preparing: 1, delivering: 2, delivered: 3 };
+
+function fmtTime(iso) {
+  if (!iso) return null;
+  return new Date(iso).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+}
 
 const PAYMENT_LABELS = {
   pix:         'Pix',
@@ -446,6 +451,7 @@ export default function OrderConfirmation() {
               const isDone    = i < statusIdx;
               const isActive  = i === statusIdx;
               const isPending = i > statusIdx;
+              const ts        = (isDone || isActive) ? fmtTime(order[s.tsField]) : null;
               return (
                 <div
                   key={s.key}
@@ -457,10 +463,19 @@ export default function OrderConfirmation() {
                       ? <Icon name="check" size={16} />
                       : <Icon name={s.icon} size={18} fill />}
                   </div>
-                  <div className="oc-status-text">
+                  <div className="oc-status-text" style={{ flex: 1 }}>
                     <span className="oc-status-name">{s.label}</span>
                     {isActive && <span className="oc-status-desc">{s.desc}</span>}
                   </div>
+                  {ts && (
+                    <span style={{
+                      fontSize: '0.72rem', fontWeight: 600,
+                      color: isDone ? '#94a3b8' : '#16a34a',
+                      flexShrink: 0, marginLeft: 8,
+                    }}>
+                      {ts}
+                    </span>
+                  )}
                 </div>
               );
             })}
