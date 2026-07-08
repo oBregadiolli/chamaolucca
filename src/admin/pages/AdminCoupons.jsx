@@ -67,7 +67,7 @@ function CouponForm({ coupon, onSave, onCancel }) {
     try {
       const payload = {
         code:           form.code.trim().toUpperCase(),
-        description:    form.description.trim() || null,
+        description:    form.description?.trim() || null,
         discount_type:  form.discount_type,
         discount_value: Number(form.discount_value),
         min_order:      form.min_order  ? Number(form.min_order)  : 0,
