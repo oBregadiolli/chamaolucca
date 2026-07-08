@@ -51,8 +51,8 @@ function CategoryForm({ category, onSave, onCancel }) {
       const payload = {
         name: form.name.trim(),
         slug: form.slug.trim(),
-        description: form.description.trim() || null,
-        image_url: form.image_url.trim() || null,
+        description: form.description?.trim() || null,
+        image_url: form.image_url?.trim() || null,
         sort_order: Number(form.sort_order) || 0,
         active: form.active,
       };
