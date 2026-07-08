@@ -305,13 +305,14 @@ export default function OrderConfirmation() {
 
       const { data, error: fnErr } = await supabase.functions.invoke('create-mp-preference', {
         body: {
-          order_id:     order.id,
-          order_number: order.order_number,
-          items:        itemsPayload,
-          payer_email:  user.email ?? `${user.id}@chamaolucca.com.br`,
-          payer_name:   'Cliente',
-          shipping:     order.shipping ?? 0,
-          app_url:      appUrl,
+          order_id:       order.id,
+          order_number:   order.order_number,
+          items:          itemsPayload,
+          payer_email:    user.email ?? `${user.id}@chamaolucca.com.br`,
+          payer_name:     'Cliente',
+          shipping:       order.shipping  ?? 0,
+          discount:       order.discount  ?? 0,
+          app_url:        appUrl,
           payment_method: mpPaymentMethod(order.payment_method ?? 'pix'),
         },
       });

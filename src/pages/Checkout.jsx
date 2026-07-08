@@ -425,10 +425,12 @@ function CheckoutFlow() {
     } catch (err) {
       setRedirecting(false);
       setPayError({
-        message:     err.message,
-        orderId:     order.id,
-        orderNumber: order.order_number,
+        message:       err.message,
+        orderId:       order.id,
+        orderNumber:   order.order_number,
         total,
+        shipping:      shippingApplied,
+        discount:      discountApplied,
         order,
         itemsSnapshot,
       });
@@ -438,7 +440,13 @@ function CheckoutFlow() {
 
   async function handlePayRetry() {
     if (!payError) return;
-    await openMercadoPago({ order: payError.order, total: payError.total, itemsSnapshot: payError.itemsSnapshot });
+    await openMercadoPago({
+      order:         payError.order,
+      total:         payError.total,
+      itemsSnapshot: payError.itemsSnapshot,
+      shipping:      payError.shipping  ?? 0,
+      discount:      payError.discount  ?? 0,
+    });
   }
 
   // ── Telas de estado ──────────────────────────────
