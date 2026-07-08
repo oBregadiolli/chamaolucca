@@ -108,19 +108,21 @@ Deno.serve(async (req) => {
     };
 
     if (payment_method === 'pix') {
+      // Exclui cartões e boleto → só Pix disponível. MP seleciona automaticamente.
       preference.payment_methods = {
-        default_payment_method_id: 'pix',
-        excluded_payment_types: [{ id: 'credit_card' }, { id: 'debit_card' }, { id: 'ticket' }],
+        excluded_payment_types: [
+          { id: 'credit_card' },
+          { id: 'debit_card' },
+          { id: 'ticket' },
+        ],
       };
     } else if (payment_method === 'credit') {
       preference.payment_methods = {
-        default_payment_method_id: 'credit_card',
-        excluded_payment_types: [{ id: 'ticket' }],
+        excluded_payment_types: [{ id: 'ticket' }, { id: 'debit_card' }],
       };
     } else if (payment_method === 'debit') {
       preference.payment_methods = {
-        default_payment_method_id: 'debit_card',
-        excluded_payment_types: [{ id: 'ticket' }],
+        excluded_payment_types: [{ id: 'ticket' }, { id: 'credit_card' }],
       };
     }
 
