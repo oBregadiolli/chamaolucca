@@ -138,10 +138,16 @@ function OrderDetailDrawer({ order, onClose, onRetry, retrying, retryError }) {
               <strong>{formatDate(order.delivery_date)}</strong>
             </div>
           )}
-          {order.delivery_time && order.delivery_time !== 'express' && (
+          {order.delivery_time && (
             <div className="od-info-row">
               <span>Horário</span>
-              <strong>{order.delivery_time.replace('-', ' às ')}</strong>
+              <strong>
+                {order.delivery_time === 'express'
+                  ? (order.status === 'delivered'
+                      ? `Entregue às ${new Date(order.updated_at).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`
+                      : 'Entrega expressa')
+                  : order.delivery_time.replace('-', ' às ')}
+              </strong>
             </div>
           )}
           {order.notes && (
