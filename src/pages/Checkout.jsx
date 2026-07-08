@@ -417,8 +417,9 @@ function CheckoutFlow() {
         },
       });
 
-      if (fnErr) throw new Error(`Erro de conexão: ${fnErr.message}`);
-      if (!data?.ok) throw new Error(data?.error ?? 'Erro desconhecido do servidor de pagamento.');
+      if (fnErr || !data?.ok) {
+        throw new Error('Não conseguimos conectar ao Mercado Pago. Seu pedido foi salvo — tente novamente em instantes.');
+      }
 
       window.location.href = data.checkout_url;
 

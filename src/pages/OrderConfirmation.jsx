@@ -317,8 +317,10 @@ export default function OrderConfirmation() {
         },
       });
 
-      if (fnErr) throw new Error(`Erro de conexão: ${fnErr.message}`);
-      if (!data?.ok) throw new Error(data?.error ?? 'Erro no servidor de pagamento.');
+      if (fnErr || !data?.ok) {
+        const friendly = 'Não conseguimos abrir o pagamento. Tente novamente em instantes.';
+        throw new Error(friendly);
+      }
 
       // Redireciona para checkout MP
       window.location.href = data.checkout_url;
