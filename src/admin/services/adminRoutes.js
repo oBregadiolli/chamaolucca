@@ -129,6 +129,9 @@ export async function createRoute({
   routeMetadata = null,
   batchId = null,
   batchIndex = null,
+  driverId = null,
+  driverName = null,
+  driverPhone = null,
 }) {
   // 1. Create route
   const { data: route, error: routeError } = await supabase
@@ -143,6 +146,9 @@ export async function createRoute({
       route_metadata: routeMetadata,
       batch_id:       batchId,
       batch_index:    batchIndex,
+      driver_id:      driverId,
+      driver_name:    driverName,
+      driver_phone:   driverPhone,
     })
     .select()
     .single();
@@ -169,11 +175,18 @@ export async function createRoute({
     throw stopsError;
   }
 
-  // 3. Update order statuses to 'delivering'
+  // 3. Update order statuses to 'delivering' (+ driver if assigned)
   const orderIds = stops.map(s => s.order_id);
+  const orderUpdate = {
+    status:       'delivering',
+    updated_at:   new Date().toISOString(),
+    driver_id:    driverId,
+    driver_name:  driverName,
+    driver_phone: driverPhone,
+  };
   const { error: ordersError } = await supabase
     .from('orders')
-    .update({ status: 'delivering', updated_at: new Date().toISOString() })
+    .update(orderUpdate)
     .in('id', orderIds);
 
   if (ordersError) throw ordersError;

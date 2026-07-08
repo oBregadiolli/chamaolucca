@@ -677,8 +677,9 @@ function CreateRouteModal({ selectedOrders, allOrders, onClose, onCreated }) {
   }
 
   // ─── Save route ────────────────────────────────────────────────────
-  async function handleConfirm() {
+  async function handleConfirm(driver) {
     setSaving(true);
+    setShowDriverPick(false);
     setError('');
     try {
       const firstDate = stops.find(o => o.delivery_date)?.delivery_date ?? new Date().toISOString().slice(0, 10);
@@ -697,6 +698,9 @@ function CreateRouteModal({ selectedOrders, allOrders, onClose, onCreated }) {
         mapsUrl,
         createdBy:     profile.id,
         isOptimized:   optimized,
+        driverId:    driver?.id    ?? null,
+        driverName:  driver?.name  ?? null,
+        driverPhone: driver?.phone ?? null,
         routeMetadata: optMeta ? {
           total_distance:  optMeta.total_distance_text,
           total_duration:  optMeta.total_duration_text,
@@ -720,7 +724,17 @@ function CreateRouteModal({ selectedOrders, allOrders, onClose, onCreated }) {
   }
 
   return (
-    <div className="admin-modal-overlay" onClick={onClose}>
+    <>
+      {/* Driver selection before saving the route */}
+      {showDriverPick && (
+        <AssignDriverModal
+          orderLabel={`${name} — ${stops.length} paradas`}
+          onConfirm={(driver) => handleConfirm(driver)}
+          onCancel={() => setShowDriverPick(false)}
+        />
+      )}
+
+      <div className="admin-modal-overlay" onClick={onClose}>
       <div
         className="admin-modal admin-modal--order"
         onClick={e => e.stopPropagation()}
@@ -1019,7 +1033,7 @@ function CreateRouteModal({ selectedOrders, allOrders, onClose, onCreated }) {
           ) : (
             <button
               className="admin-btn admin-btn--primary"
-              onClick={handleConfirm}
+              onClick={() => setShowDriverPick(true)}
               disabled={saving}
               style={{ flex: 2, justifyContent: 'center', background: '#059669', borderColor: '#059669' }}
             >
@@ -1030,6 +1044,7 @@ function CreateRouteModal({ selectedOrders, allOrders, onClose, onCreated }) {
         </div>
       </div>
     </div>
+    </>
   );
 }
 
