@@ -174,10 +174,17 @@ export default function AdminSettings() {
   async function handleSave(e) {
     e.preventDefault();
     setSaving(true);
+    // M4: sanitiza cidades antes de salvar (remove espaços, vírgulas duplas, entradas vazias)
+    const sanitizedCities = citiesInput
+      .split(',')
+      .map((c) => c.trim())
+      .filter(Boolean)
+      .join(', ');
+
     const updates = [
       supabase.from('store_settings').upsert({ key: 'open_time',            value: openTime,                        label: 'Horário de abertura'                }, { onConflict: 'key' }),
       supabase.from('store_settings').upsert({ key: 'close_time',           value: closeTime,                       label: 'Horário de fechamento'             }, { onConflict: 'key' }),
-      supabase.from('store_settings').upsert({ key: 'coverage_cities',      value: citiesInput,                     label: 'Cidades atendidas'                  }, { onConflict: 'key' }),
+      supabase.from('store_settings').upsert({ key: 'coverage_cities',      value: sanitizedCities,                 label: 'Cidades atendidas'                  }, { onConflict: 'key' }),
       supabase.from('store_settings').upsert({ key: 'shipping_fee',         value: String(shippingFee || '4.00'),   label: 'Valor fixo do frete (R$)'           }, { onConflict: 'key' }),
       supabase.from('store_settings').upsert({ key: 'free_shipping_above',  value: String(freeShippingAbove || '0'),label: 'Frete grátis acima de (R$)'         }, { onConflict: 'key' }),
       supabase.from('store_settings').upsert({ key: 'free_shipping_active', value: String(freeShippingActive),      label: 'Frete grátis habilitado'             }, { onConflict: 'key' }),

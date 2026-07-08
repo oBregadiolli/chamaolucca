@@ -16,7 +16,8 @@ export async function fetchAllOrders() {
       user_id,
       profiles:user_id ( id, name, email, phone )
     `)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .limit(500); // M3: evita degradação do painel com alto volume
 
   if (error) throw error;
   return data;

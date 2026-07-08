@@ -1,4 +1,5 @@
 import { handleOptions, jsonResponse } from '../_shared/cors.ts';
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const MP_API = 'https://api.mercadopago.com/checkout/preferences';
 
@@ -32,6 +33,28 @@ Deno.serve(async (req) => {
 
     if (!order_id || !items.length) {
       return jsonResponse({ ok: false, error: 'order_id e items são obrigatórios' }, 400, req);
+    }
+
+    // B2: valida que o pedido pertence ao usuário autenticado
+    const authHeader = req.headers.get('Authorization');
+    if (authHeader) {
+      const supabase = createClient(
+        Deno.env.get('SUPABASE_URL')!,
+        Deno.env.get('SUPABASE_ANON_KEY')!,
+        { global: { headers: { Authorization: authHeader } } },
+      );
+      const { data: orderRow } = await supabase
+        .from('orders')
+        .select('id, user_id')
+        .eq('id', order_id)
+        .maybeSingle();
+      if (!orderRow) {
+        return jsonResponse({ ok: false, error: 'Pedido não encontrado' }, 404, req);
+      }
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user && orderRow.user_id !== user.id) {
+        return jsonResponse({ ok: false, error: 'Acesso negado ao pedido' }, 403, req);
+      }
     }
 
     const baseUrl = (app_url || 'http://localhost:5173').replace(/\/$/, '');

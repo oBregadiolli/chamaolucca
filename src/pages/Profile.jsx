@@ -293,7 +293,7 @@ export default function Profile() {
     setOrdersError(null);
     try {
       const [ordRes, addrRes] = await Promise.all([
-        supabase.from('orders').select('*, order_items(*)').eq('user_id', user.id).order('created_at', { ascending: false }),
+        supabase.from('orders').select('*, order_items(*)').eq('user_id', user.id).order('created_at', { ascending: false }).limit(50),
         supabase.from('addresses').select('*').eq('user_id', user.id).order('is_default', { ascending: false }),
       ]);
       if (ordRes.error) throw ordRes.error;

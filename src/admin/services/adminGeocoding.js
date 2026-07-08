@@ -3,6 +3,24 @@ import { supabase } from '../../lib/supabase';
 const SUPABASE_URL = import.meta.env.VITE_SUPABASE_URL;
 const SUPABASE_KEY = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
+// B3: retry helper — tenta até maxAttempts vezes em falhas transitórias (5xx / network error)
+async function fetchWithRetry(url, options, maxAttempts = 3, delayMs = 1000) {
+  let lastErr;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const res = await fetch(url, options);
+      if (res.ok || res.status < 500) return res; // 4xx não faz retry
+      lastErr = new Error(`HTTP ${res.status}`);
+    } catch (err) {
+      lastErr = err;
+    }
+    if (attempt < maxAttempts) {
+      await new Promise((r) => setTimeout(r, delayMs * attempt));
+    }
+  }
+  throw lastErr;
+}
+
 // ─── Geocoding stats ──────────────────────────────────────────────────
 export async function fetchGeocodingStats() {
   // Total active orders
@@ -48,12 +66,9 @@ export async function fetchNonGeocodedOrders(limit = 50) {
 
 // ─── Geocode a single order (calls the Edge Function) ────────────────
 export async function geocodeOrder(orderId, force = false) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/geocode-address`, {
+  const res = await fetchWithRetry(`${SUPABASE_URL}/functions/v1/geocode-address`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-    },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
     body: JSON.stringify({ order_id: orderId, force }),
   });
 
@@ -63,12 +78,9 @@ export async function geocodeOrder(orderId, force = false) {
 
 // ─── Geocode batch (retroactive — calls the Edge Function in batch mode)
 export async function geocodeBatch(limit = 50) {
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/geocode-address`, {
+  const res = await fetchWithRetry(`${SUPABASE_URL}/functions/v1/geocode-address`, {
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json',
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-    },
+    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${SUPABASE_KEY}` },
     body: JSON.stringify({ batch: true, limit }),
   });
 
