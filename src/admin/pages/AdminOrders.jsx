@@ -669,7 +669,7 @@ function CreateRouteModal({ selectedOrders, allOrders, onClose, onCreated }) {
 
     if (!optimized) {
       // Fallback: text-address based URL
-      const url = buildMapsUrl(stops, storeSettings.city);
+      const url = buildMapsUrl(stops, storeSettings.city, storeSettings.address || undefined);
       setMapsUrl(url);
     }
     // If optimized, mapsUrl already set by handleOptimize
@@ -1226,7 +1226,7 @@ export default function AdminOrders() {
         name:         g.name,
         deliveryDate: g.orders.find(o => o.delivery_date)?.delivery_date ?? new Date().toISOString().slice(0, 10),
         stops:        g.orders.map(o => ({ order_id: o.id })),
-        mapsUrl:      buildMapsUrl(g.orders, storeSettings.city),
+        mapsUrl:      buildMapsUrl(g.orders, storeSettings.city, storeSettings.address || undefined),
         isOptimized:  false,
         routeMetadata: null,
       }));

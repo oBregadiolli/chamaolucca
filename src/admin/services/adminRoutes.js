@@ -383,7 +383,9 @@ export async function callOptimizeRoute({ stops, originLat, originLng, originAdd
 }
 
 // ─── Build Google Maps URL (manual / fallback) ────────────────────────
-export function buildMapsUrl(stops, city) {
+// storeAddress: endereço textual do estabelecimento usado como origem.
+// Se não fornecido, usa o primeiro pedido como fallback.
+export function buildMapsUrl(stops, city, storeAddress) {
   const buildAddr = (s) => {
     const parts = [s.delivery_address];
     if (s.delivery_complement) parts.push(s.delivery_complement);
@@ -395,9 +397,11 @@ export function buildMapsUrl(stops, city) {
   const addresses = stops.map(buildAddr);
   if (addresses.length === 0) return '';
 
-  const origin      = addresses[0];
+  // Origem = estabelecimento (se cadastrado) ou primeiro pedido como fallback
+  const origin      = storeAddress || addresses[0];
   const destination = addresses[addresses.length - 1];
-  const waypoints   = addresses.slice(1, -1);
+  // Com loja como origem, todos os pedidos são waypoints + destino final
+  const waypoints   = storeAddress ? addresses.slice(0, -1) : addresses.slice(1, -1);
 
   const base   = 'https://www.google.com/maps/dir/?api=1';
   const params = new URLSearchParams({ origin, destination, travelmode: 'driving' });

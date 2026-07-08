@@ -69,12 +69,19 @@ Deno.serve(async (req) => {
       }, 200, req);
     }
 
-    const waypointStr = stops.map((s: { lat: number; lng: number }) => `${s.lat},${s.lng}`).join('|');
+
 
     const url = new URL('https://maps.googleapis.com/maps/api/directions/json');
     url.searchParams.set('origin', `${originLat},${originLng}`);
-    url.searchParams.set('destination', `${originLat},${originLng}`);
-    url.searchParams.set('waypoints', `optimize:true|${waypointStr}`);
+    // Destino = última parada (não round-trip de volta à loja)
+    const lastStop = stops[stops.length - 1];
+    url.searchParams.set('destination', `${lastStop.lat},${lastStop.lng}`);
+    // Waypoints = paradas intermediárias (sem a última, que é o destino)
+    const waypointStops = stops.slice(0, -1);
+    const waypointStr   = waypointStops.map((s: { lat: number; lng: number }) => `${s.lat},${s.lng}`).join('|');
+    if (waypointStops.length > 0) {
+      url.searchParams.set('waypoints', `optimize:true|${waypointStr}`);
+    }
     url.searchParams.set('key', apiKey);
     url.searchParams.set('language', 'pt-BR');
     url.searchParams.set('region', 'br');
@@ -109,13 +116,22 @@ Deno.serve(async (req) => {
     const mapsParams = new URLSearchParams({
       api: '1',
       origin: `${originLat},${originLng}`,
-      destination: `${originLat},${originLng}`,
       travelmode: 'driving',
     });
 
     if (orderIdx.length > 0) {
-      const wpCoords = orderIdx.map((i: number) => `${stops[i].lat},${stops[i].lng}`);
-      mapsParams.set('waypoints', wpCoords.join('|'));
+      // Destino = último stop na ordem otimizada
+      const lastOptIdx  = orderIdx[orderIdx.length - 1];
+      const lastOptStop = stops[lastOptIdx];
+      mapsParams.set('destination', `${lastOptStop.lat},${lastOptStop.lng}`);
+
+      // Waypoints = demais stops otimizados (excluindo o destino final)
+      const wpCoords = orderIdx.slice(0, -1).map((i: number) => `${stops[i].lat},${stops[i].lng}`);
+      if (wpCoords.length > 0) {
+        mapsParams.set('waypoints', wpCoords.join('|'));
+      }
+    } else {
+      mapsParams.set('destination', `${lastStop.lat},${lastStop.lng}`);
     }
 
     return jsonResponse({
