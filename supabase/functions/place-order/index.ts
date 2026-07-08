@@ -172,6 +172,13 @@ Deno.serve(async (req) => {
           error: `Produto "${product?.name ?? 'indisponível'}" não está mais disponível`,
         }, 400, req);
       }
+      // B1: rejeita quantidade inválida (payload manipulado)
+      if (!item.quantity || item.quantity <= 0) {
+        return jsonResponse({
+          ok: false,
+          error: `Quantidade inválida para "${product.name}"`,
+        }, 400, req);
+      }
       const unitPrice = effectivePrice(product);
       lineItems.push({
         product_id: item.product_id,
@@ -261,7 +268,8 @@ Deno.serve(async (req) => {
       shipping = 0;
     }
 
-    const total = parseFloat((subtotal - discount + shipping).toFixed(2));
+    // M1: total nunca negativo (ex: cupom fixo alto + frete)
+    const total = Math.max(0, parseFloat((subtotal - discount + shipping).toFixed(2)));
 
     const { data: order, error: orderError } = await supabase
       .from('orders')
@@ -307,15 +315,22 @@ Deno.serve(async (req) => {
 
     if (itemsError) {
       console.error('[place-order] insert items', itemsError);
-      await supabase.from('orders').delete().eq('id', order.id);
+      // A1: tenta rollback e loga se falhar (sem transação real no Supabase)
+      const { error: rollbackErr } = await supabase.from('orders').delete().eq('id', order.id);
+      if (rollbackErr) {
+        console.error('[place-order] ROLLBACK FAILED — orphan order:', order.id, rollbackErr.message);
+      }
       throw itemsError;
     }
 
     if (couponId) {
-      const { error: couponErr } = await supabase.rpc('increment_coupon_use', { coupon_id: couponId });
-      if (couponErr) {
-        await supabase.from('order_items').delete().eq('order_id', order.id);
-        await supabase.from('orders').delete().eq('id', order.id);
+      // C1: RPC atômico — retorna false se o cupom esgotou entre a verificação e aqui (race condition)
+      const { data: couponOk, error: couponErr } = await supabase.rpc('increment_coupon_use', { coupon_id: couponId });
+      if (couponErr || couponOk === false) {
+        const { error: ri } = await supabase.from('order_items').delete().eq('order_id', order.id);
+        const { error: ro } = await supabase.from('orders').delete().eq('id', order.id);
+        if (ri) console.error('[place-order] rollback order_items failed:', ri.message);
+        if (ro) console.error('[place-order] rollback order failed:', ro.message);
         return jsonResponse({ ok: false, error: 'Cupom esgotado ou indisponível' }, 400, req);
       }
     }

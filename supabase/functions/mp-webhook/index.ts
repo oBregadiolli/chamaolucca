@@ -127,6 +127,12 @@ Deno.serve(async (req) => {
     return jsonResponse({ ok: false, error: 'Method not allowed' }, 405, req);
   }
 
+  // C2: GETs não processam nenhum dado de pagamento — apenas health check.
+  // Aceitar GETs sem assinatura abria brecha para forçar atualização de pedidos via URL pública.
+  if (req.method === 'GET') {
+    return jsonResponse({ ok: true, message: 'mp-webhook healthy' }, 200, req);
+  }
+
   try {
     const token = Deno.env.get('MP_ACCESS_TOKEN');
     if (!token) {

@@ -159,11 +159,15 @@ export default function AdminSettings() {
 
   // ── Delete neighborhood ──
   async function handleDeleteNeighborhood(id, name) {
+    // A4: confirmação antes de deletar — evita exclusão acidental com clique errado
+    if (!window.confirm(`Remover "${name}" da lista de bairros? Esta ação não pode ser desfeita.`)) return;
     const { error } = await supabase.from('neighborhoods').delete().eq('id', id);
-    if (!error) {
-      setNeighborhoods((prev) => prev.filter((n) => n.id !== id));
-      showToast(`"${name}" removido.`);
+    if (error) {
+      showToast('Erro ao remover bairro.', 'error');
+      return;
     }
+    setNeighborhoods((prev) => prev.filter((n) => n.id !== id));
+    showToast(`"${name}" removido.`);
   }
 
   // ── Save settings ──

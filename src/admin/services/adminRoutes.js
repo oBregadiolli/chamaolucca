@@ -340,14 +340,29 @@ export async function callOptimizeRoute({ stops, originLat, originLng, originAdd
     ...(departureTime && { departure_time: departureTime }),
   };
 
-  const res = await fetch(`${SUPABASE_URL}/functions/v1/optimize-route`, {
-    method: 'POST',
-    headers: {
-      'Content-Type':  'application/json',
-      'Authorization': `Bearer ${SUPABASE_KEY}`,
-    },
-    body: JSON.stringify(body),
-  });
+  // A3: timeout de 30s — evita modal travado para sempre se a Edge Function demorar
+  const controller = new AbortController();
+  const timeoutId  = setTimeout(() => controller.abort(), 30_000);
+
+  let res;
+  try {
+    res = await fetch(`${SUPABASE_URL}/functions/v1/optimize-route`, {
+      method: 'POST',
+      headers: {
+        'Content-Type':  'application/json',
+        'Authorization': `Bearer ${SUPABASE_KEY}`,
+      },
+      body:   JSON.stringify(body),
+      signal: controller.signal,
+    });
+  } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new Error('Tempo de otimização esgotado (30s). Verifique a conexão e tente novamente.');
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeoutId);
+  }
 
   const data = await res.json();
   if (!data.ok) throw Object.assign(new Error(data.error ?? 'Optimization failed'), { code: data.code });

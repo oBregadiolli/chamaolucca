@@ -316,6 +316,8 @@ function CheckoutFlow() {
   }
 
   async function placeOrder({ couponCode = null, testMode = false } = {}) {
+    // A2: guard contra double-submit (lag de rede + clique duplo)
+    if (saving) return;
 
     if (!user) { setError('Você precisa estar logado para finalizar o pedido.'); return; }
     if (items.length === 0) { setError('Seu carrinho está vazio.'); return; }
