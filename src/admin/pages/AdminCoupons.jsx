@@ -52,7 +52,7 @@ function CouponForm({ coupon, onSave, onCancel }) {
   function set(field, value) { setForm(f => ({ ...f, [field]: value })); }
 
   function validate() {
-    if (!form.code.trim())  return 'Código do cupom é obrigatório.';
+    if (!(form.code ?? '').trim())  return 'Código do cupom é obrigatório.';;
     if (!form.discount_value || Number(form.discount_value) <= 0) return 'Informe o valor do desconto.';
     if (form.discount_type === 'percentage' && Number(form.discount_value) > 100) return 'Desconto percentual máximo é 100%.';
     return null;
@@ -66,7 +66,7 @@ function CouponForm({ coupon, onSave, onCancel }) {
     setError(null);
     try {
       const payload = {
-        code:           form.code.trim().toUpperCase(),
+        code:           (form.code ?? '').trim().toUpperCase(),
         description:    form.description?.trim() || null,
         discount_type:  form.discount_type,
         discount_value: Number(form.discount_value),
@@ -183,7 +183,7 @@ function CouponForm({ coupon, onSave, onCancel }) {
               <label className="admin-form-label">Descrição interna (opcional)</label>
               <input
                 className="admin-form-input"
-                value={form.description}
+                value={form.description ?? ''}
                 onChange={e => set('description', e.target.value)}
                 placeholder="Ex: Cupom de boas-vindas para novos clientes"
               />

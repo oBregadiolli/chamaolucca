@@ -46,7 +46,7 @@ export async function validateCoupon(code, subtotal) {
   const { data, error } = await supabase
     .from('coupons')
     .select('*')
-    .eq('code', code.toUpperCase().trim())
+    .eq('code', (code ?? '').toUpperCase().trim())
     .maybeSingle();
 
   if (error) return { valid: false, reason: 'Erro ao validar cupom.' };

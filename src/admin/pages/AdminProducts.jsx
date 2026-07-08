@@ -306,7 +306,7 @@ function ProductForm({ product, categories, onSave, onCancel }) {
                 type="number"
                 step="0.01"
                 min="0"
-                value={form.promotional_price}
+                value={form.promotional_price ?? ''}
                 onChange={(e) => set('promotional_price', e.target.value)}
                 placeholder="Opcional"
               />
@@ -318,7 +318,7 @@ function ProductForm({ product, categories, onSave, onCancel }) {
                 className="admin-form-input"
                 type="number"
                 min="0"
-                value={form.stock}
+                value={form.stock ?? ''}
                 onChange={(e) => set('stock', e.target.value)}
                 placeholder="Opcional"
               />

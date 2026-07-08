@@ -56,7 +56,7 @@ export default function AdminDashboard() {
       <div className="admin-stat-grid">
         <div className="admin-stat-card admin-stat-card--primary">
           <div className="admin-stat-icon"><Icon name="package_2" size={28} fill /></div>
-          <div className="admin-stat-value">{summary.total}</div>
+          <div className="admin-stat-value">{summary?.total ?? 0}</div>
           <div className="admin-stat-label">Total de Pedidos</div>
           <Link to="/admin/pedidos" className="admin-stat-link">Ver todos →</Link>
         </div>

@@ -139,7 +139,7 @@ export default function AdminSettings() {
     const name = newNeighborhood.trim();
     if (!name || !selectedCity) return;
     // Check duplicate
-    if (neighborhoods.some((n) => n.name.toLowerCase() === name.toLowerCase())) {
+    if (neighborhoods.some((n) => (n.name ?? '').toLowerCase() === name.toLowerCase())) {
       showToast('Bairro já existe na lista.', 'error');
       return;
     }

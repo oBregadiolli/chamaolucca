@@ -115,7 +115,7 @@ function CategoryForm({ category, onSave, onCancel }) {
               <label className="admin-form-label">Descrição</label>
               <input
                 className="admin-form-input"
-                value={form.description}
+                value={form.description ?? ''}
                 onChange={(e) => set('description', e.target.value)}
                 placeholder="Opcional"
               />
@@ -125,7 +125,7 @@ function CategoryForm({ category, onSave, onCancel }) {
               <label className="admin-form-label">URL da Imagem</label>
               <input
                 className="admin-form-input"
-                value={form.image_url}
+                value={form.image_url ?? ''}
                 onChange={(e) => set('image_url', e.target.value)}
                 placeholder="https://..."
               />
