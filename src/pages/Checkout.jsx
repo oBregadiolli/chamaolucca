@@ -369,10 +369,11 @@ function CheckoutFlow() {
       return;
     }
 
-    const order = placeData.order;
-    const total = parseFloat(placeData.total ?? order.total);
+    const order          = placeData.order;
+    const total          = parseFloat(placeData.total    ?? order.total);
     const shippingApplied = parseFloat(placeData.shipping ?? order.shipping);
-    const itemsSnapshot = (placeData.items ?? []).map((i) => ({
+    const discountApplied = parseFloat(placeData.discount ?? order.discount ?? 0);
+    const itemsSnapshot  = (placeData.items ?? []).map((i) => ({
       title:      i.title,
       quantity:   i.quantity,
       unit_price: i.unit_price,
@@ -394,10 +395,10 @@ function CheckoutFlow() {
     setSaving(false);
 
     // 7. Redirecionar para Mercado Pago
-    await openMercadoPago({ order, total, itemsSnapshot, shipping: shippingApplied });
+    await openMercadoPago({ order, total, itemsSnapshot, shipping: shippingApplied, discount: discountApplied });
   }
 
-  async function openMercadoPago({ order, total, itemsSnapshot, shipping = 4 }) {
+  async function openMercadoPago({ order, total, itemsSnapshot, shipping = 4, discount = 0 }) {
     setRedirecting(true);
     try {
       const appUrl = window.location.origin;
@@ -410,8 +411,9 @@ function CheckoutFlow() {
           payer_email:    user.email ?? `${user.id}@chamaolucca.com.br`,
           payer_name:     profile?.name ?? 'Cliente',
           shipping:       shipping,
+          discount:       discount,
           app_url:        appUrl,
-          payment_method: mpPaymentMethod(payment), // pix | credit | debit → MP pre-selects the tab
+          payment_method: mpPaymentMethod(payment),
         },
       });
 

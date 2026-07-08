@@ -20,6 +20,7 @@ Deno.serve(async (req) => {
       payer_email,
       payer_name,
       shipping = 0,
+      discount = 0,
       app_url,
       payment_method: rawPaymentMethod,
     } = body;
@@ -48,6 +49,16 @@ Deno.serve(async (req) => {
         title: 'Frete',
         quantity: 1,
         unit_price: shippingNum,
+        currency_id: 'BRL',
+      });
+    }
+
+    const discountNum = Number(discount) || 0;
+    if (discountNum > 0) {
+      mpItems.push({
+        title: 'Desconto cupom',
+        quantity: 1,
+        unit_price: -discountNum,
         currency_id: 'BRL',
       });
     }
