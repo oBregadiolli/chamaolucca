@@ -262,6 +262,15 @@ export default function Profile() {
   const [saving,    setSaving]    = useState(false);
   const [toast,     setToast]     = useState(null);
 
+  /* ── phone mask (same as AuthModal) ── */
+  function formatPhone(value) {
+    const digits = value.replace(/\D/g, '').slice(0, 11);
+    if (digits.length <= 2)  return digits.replace(/^(\d{0,2})/, '($1');
+    if (digits.length <= 6)  return digits.replace(/^(\d{2})(\d{0,4})/, '($1) $2');
+    if (digits.length <= 10) return digits.replace(/^(\d{2})(\d{4})(\d{0,4})/, '($1) $2-$3');
+    return digits.replace(/^(\d{2})(\d{5})(\d{0,4})/, '($1) $2-$3');
+  }
+
   /* ── password form ── */
   const [pwCurrent, setPwCurrent] = useState('');
   const [pwNew,     setPwNew]     = useState('');
@@ -269,9 +278,11 @@ export default function Profile() {
   const [pwSaving,  setPwSaving]  = useState(false);
 
   /* ── address modal ── */
-  const [addrModal, setAddrModal]   = useState(false);
-  const [addrForm,  setAddrForm]    = useState({ label:'Casa', street:'', number:'', complement:'', neighborhood:'', city:'', state:'BA', zip:'' });
-  const [addrSaving, setAddrSaving] = useState(false);
+  const EMPTY_ADDR = { label:'Casa', street:'', number:'', complement:'', neighborhood:'', city:'', state:'BA', zip:'' };
+  const [addrModal,     setAddrModal]     = useState(false);
+  const [addrForm,      setAddrForm]      = useState(EMPTY_ADDR);
+  const [addrSaving,    setAddrSaving]    = useState(false);
+  const [editingAddrId, setEditingAddrId] = useState(null); // null = new, uuid = editing
 
   /* ── section refs for scrollspy ── */
   const sectionRefs = useRef({});
@@ -340,12 +351,20 @@ export default function Profile() {
 
   /* ── Save profile ── */
   async function handleSaveProfile(e) {
-    e.preventDefault();
+    e?.preventDefault();
     setSaving(true);
-    const { error } = await supabase.from('profiles').update({ name, cpf, whatsapp, promo_emails: promoOn }).eq('id', user.id);
-    setSaving(false);
-    if (error) showToast('Erro ao salvar. Tente novamente.', 'error');
-    else showToast('Dados salvos com sucesso!');
+    try {
+      const { error } = await supabase
+        .from('profiles')
+        .update({ name, cpf, whatsapp, promo_emails: promoOn })
+        .eq('id', user.id);
+      if (error) showToast('Erro ao salvar. Tente novamente.', 'error');
+      else showToast('Dados salvos com sucesso!');
+    } catch {
+      showToast('Erro de conexão. Tente novamente.', 'error');
+    } finally {
+      setSaving(false);
+    }
   }
 
   /* ── Change password ── */
@@ -363,18 +382,65 @@ export default function Profile() {
     }
   }
 
-  /* ── Save address ── */
+  /* ── Open address modal (new or edit) ── */
+  function openAddrModal(addr = null) {
+    if (addr) {
+      const { id, user_id, created_at, updated_at, is_default, ...fields } = addr;
+      setAddrForm(fields);
+      setEditingAddrId(id);
+    } else {
+      setAddrForm(EMPTY_ADDR);
+      setEditingAddrId(null);
+    }
+    setAddrModal(true);
+  }
+
+  function closeAddrModal() {
+    setAddrModal(false);
+    setEditingAddrId(null);
+    setAddrForm(EMPTY_ADDR);
+  }
+
+  /* ── Save address (INSERT or UPDATE) ── */
   async function handleSaveAddress(e) {
     e.preventDefault();
     if (!addrForm.street || !addrForm.city) return;
     setAddrSaving(true);
-    const { data, error } = await supabase.from('addresses').insert({ ...addrForm, user_id: user.id }).select().single();
-    setAddrSaving(false);
-    if (!error && data) {
-      setAddresses((prev) => [...prev, data]);
-      setAddrModal(false);
-      setAddrForm({ label:'Casa', street:'', number:'', complement:'', neighborhood:'', city:'', state:'BA', zip:'' });
-      showToast('Endereço adicionado!');
+    try {
+      if (editingAddrId) {
+        // UPDATE existing
+        const { data, error } = await supabase
+          .from('addresses')
+          .update(addrForm)
+          .eq('id', editingAddrId)
+          .select()
+          .single();
+        if (!error && data) {
+          setAddresses((prev) => prev.map((a) => (a.id === editingAddrId ? data : a)));
+          closeAddrModal();
+          showToast('Endereço atualizado!');
+        } else if (error) {
+          showToast('Erro ao atualizar endereço.', 'error');
+        }
+      } else {
+        // INSERT new
+        const { data, error } = await supabase
+          .from('addresses')
+          .insert({ ...addrForm, user_id: user.id })
+          .select()
+          .single();
+        if (!error && data) {
+          setAddresses((prev) => [...prev, data]);
+          closeAddrModal();
+          showToast('Endereço adicionado!');
+        } else if (error) {
+          showToast('Erro ao salvar endereço.', 'error');
+        }
+      }
+    } catch {
+      showToast('Erro de conexão. Tente novamente.', 'error');
+    } finally {
+      setAddrSaving(false);
     }
   }
 
@@ -488,7 +554,15 @@ export default function Profile() {
               </div>
               <div className="profile-form-row">
                 <label className="profile-form-label">WhatsApp</label>
-                <input className="profile-input" type="tel" value={whatsapp} onChange={(e) => setWhatsapp(e.target.value)} placeholder="Seu contato" />
+                <input
+                  className="profile-input"
+                  type="tel"
+                  value={whatsapp}
+                  onChange={(e) => setWhatsapp(formatPhone(e.target.value))}
+                  placeholder="(11) 91234-5678"
+                  maxLength={15}
+                  inputMode="numeric"
+                />
               </div>
               <div className="profile-form-row">
                 <label className="profile-form-label">Email</label>
@@ -511,7 +585,7 @@ export default function Profile() {
             {addresses.length === 0 ? (
               <div className="profile-empty-box">
                 <span className="profile-empty-label">Nenhum endereço cadastrado</span>
-                <button className="btn-profile-new-addr" onClick={() => setAddrModal(true)}>
+                <button className="btn-profile-new-addr" onClick={() => openAddrModal()}>
                   Novo Endereço
                 </button>
               </div>
@@ -529,13 +603,22 @@ export default function Profile() {
                       {addr.zip ? ` · CEP ${addr.zip}` : ''}
                     </div>
                     <div className="address-card-actions">
-                      <button className="address-action-btn address-action-remove" onClick={() => handleRemoveAddress(addr.id)}>
+                      <button
+                        className="address-action-btn address-action-edit"
+                        onClick={() => openAddrModal(addr)}
+                      >
+                        <Icon name="edit" size={14} /> Editar
+                      </button>
+                      <button
+                        className="address-action-btn address-action-remove"
+                        onClick={() => handleRemoveAddress(addr.id)}
+                      >
                         Remover
                       </button>
                     </div>
                   </div>
                 ))}
-                <button className="btn-profile-new-addr" style={{ marginTop: 8 }} onClick={() => setAddrModal(true)}>
+                <button className="btn-profile-new-addr" style={{ marginTop: 8 }} onClick={() => openAddrModal()}>
                   + Novo Endereço
                 </button>
               </>
@@ -669,13 +752,13 @@ export default function Profile() {
         </div>
       </div>
 
-      {/* ── Address Modal ── */}
+      {/* ── Address Modal (new / edit) ── */}
       {addrModal && (
-        <div className="modal-overlay" onClick={() => setAddrModal(false)}>
+        <div className="modal-overlay" onClick={closeAddrModal}>
           <div className="modal" style={{ maxWidth: 500 }} onClick={(e) => e.stopPropagation()}>
             <div className="modal-header">
-              <h2>Novo Endereço</h2>
-              <button className="modal-close" onClick={() => setAddrModal(false)}>
+              <h2>{editingAddrId ? 'Editar Endereço' : 'Novo Endereço'}</h2>
+              <button className="modal-close" onClick={closeAddrModal}>
                 <Icon name="close" size={20} />
               </button>
             </div>
@@ -718,7 +801,7 @@ export default function Profile() {
                   <input className="profile-input" value={addrForm.zip} onChange={(e) => setAddrForm({ ...addrForm, zip: e.target.value })} placeholder="00000-000" />
                 </div>
                 <button type="submit" className="btn-profile-save btn-block" style={{ width: '100%', borderRadius: 10 }} disabled={addrSaving}>
-                  {addrSaving ? 'Salvando...' : 'Salvar Endereço'}
+                  {addrSaving ? 'Salvando...' : editingAddrId ? 'Salvar Alterações' : 'Salvar Endereço'}
                 </button>
               </div>
             </form>
