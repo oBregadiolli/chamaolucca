@@ -1,7 +1,8 @@
 import { handleOptions, jsonResponse } from '../_shared/cors.ts';
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-const MP_API = 'https://api.mercadopago.com/checkout/preferences';
+const MP_PREFERENCE_API = 'https://api.mercadopago.com/checkout/preferences';
+const MP_PAYMENTS_API = 'https://api.mercadopago.com/v1/payments';
 
 Deno.serve(async (req) => {
   const opt = handleOptions(req);
@@ -35,7 +36,7 @@ Deno.serve(async (req) => {
       return jsonResponse({ ok: false, error: 'order_id e items são obrigatórios' }, 400, req);
     }
 
-    // B2: valida que o pedido pertence ao usuário autenticado
+    // Valida se o pedido pertence ao usuário autenticado
     const authHeader = req.headers.get('Authorization');
     if (authHeader) {
       const supabase = createClient(
@@ -86,6 +87,65 @@ Deno.serve(async (req) => {
       });
     }
 
+    // ── FLUXO PIX DIRETO (SEM LOGIN / SEM EXIGIR CONTA MERCADO PAGO) ──
+    if (payment_method === 'pix') {
+      const totalAmount = mpItems.reduce(
+        (acc: number, item: { unit_price: number; quantity: number }) => acc + item.unit_price * item.quantity,
+        0,
+      );
+
+      const pixPayload = {
+        transaction_amount: Number(Math.max(0.01, totalAmount).toFixed(2)),
+        description: `Pedido #${order_number || order_id} - Chama o Lucca`,
+        payment_method_id: 'pix',
+        payer: {
+          email: payer_email || 'cliente@chamaolucca.com.br',
+          first_name: payer_name || 'Cliente',
+        },
+        external_reference: String(order_id),
+        notification_url: supabaseUrl ? `${supabaseUrl}/functions/v1/mp-webhook` : undefined,
+      };
+
+      const pixRes = await fetch(MP_PAYMENTS_API, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${token}`,
+          'Content-Type': 'application/json',
+          'X-Idempotency-Key': `${order_id}_${Date.now()}`,
+        },
+        body: JSON.stringify(pixPayload),
+      });
+
+      const pixData = await pixRes.json();
+      if (pixRes.ok && pixData.point_of_interaction?.transaction_data) {
+        const transactionData = pixData.point_of_interaction.transaction_data;
+
+        // Grava no banco o QR Code e o Código Copia e Cola
+        const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY');
+        if (serviceRoleKey && supabaseUrl) {
+          const serviceClient = createClient(supabaseUrl, serviceRoleKey);
+          await serviceClient.from('orders').update({
+            pix_qr_code: transactionData.qr_code,
+            pix_expires_at: pixData.date_of_expiration,
+            payment_id: String(pixData.id),
+          }).eq('id', order_id);
+        }
+
+        return jsonResponse({
+          ok: true,
+          is_direct_pix: true,
+          pix_qr_code: transactionData.qr_code,
+          pix_qr_code_base64: transactionData.qr_code_base64,
+          payment_id: pixData.id,
+          ticket_url: transactionData.ticket_url,
+          checkout_url: transactionData.ticket_url || `${baseUrl}/pedido/${order_id}`,
+        }, 200, req);
+      } else {
+        console.warn('[create-mp-preference] Direct Pix fallback to preference', pixData);
+      }
+    }
+
+    // ── FLUXO PREFERENCE (CARTÃO / CHECKOUT PRO) ──
     const preference: Record<string, unknown> = {
       items: mpItems,
       payer: {
@@ -99,6 +159,7 @@ Deno.serve(async (req) => {
         pending: `${baseUrl}/pedido/${order_id}?mp_status=pending`,
       },
       auto_return: 'approved',
+      binary_mode: true,
       statement_descriptor: 'CHAMAO LUCCA',
       notification_url: supabaseUrl ? `${supabaseUrl}/functions/v1/mp-webhook` : undefined,
       metadata: {
@@ -107,16 +168,7 @@ Deno.serve(async (req) => {
       },
     };
 
-    if (payment_method === 'pix') {
-      // Exclui cartões e boleto → só Pix disponível. MP seleciona automaticamente.
-      preference.payment_methods = {
-        excluded_payment_types: [
-          { id: 'credit_card' },
-          { id: 'debit_card' },
-          { id: 'ticket' },
-        ],
-      };
-    } else if (payment_method === 'credit') {
+    if (payment_method === 'credit') {
       preference.payment_methods = {
         excluded_payment_types: [{ id: 'ticket' }, { id: 'debit_card' }],
       };
@@ -126,7 +178,7 @@ Deno.serve(async (req) => {
       };
     }
 
-    const res = await fetch(MP_API, {
+    const res = await fetch(MP_PREFERENCE_API, {
       method: 'POST',
       headers: {
         Authorization: `Bearer ${token}`,

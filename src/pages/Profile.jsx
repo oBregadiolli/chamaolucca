@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
 import { formatCurrency, formatDate, mpPaymentMethod } from '../lib/utils';
 import Icon from '../components/ui/Icon';
+import PaymentModal from '../components/checkout/PaymentModal';
 import '../styles/profile.css';
 
 const NAV_ITEMS = [
@@ -253,6 +254,7 @@ export default function Profile() {
   const [selectedOrder, setSelectedOrder] = useState(null);
   const [retrying, setRetrying]   = useState(false);
   const [retryError, setRetryError] = useState(null);
+  const [mpModalData, setMpModalData] = useState(null);
 
   /* ── profile form ── */
   const [name,      setName]      = useState('');
@@ -480,7 +482,8 @@ export default function Profile() {
       if (fnErr) throw new Error(`Erro de conexão: ${fnErr.message}`);
       if (!data?.ok) throw new Error(data?.error ?? 'Erro no servidor de pagamento.');
 
-      window.location.href = data.checkout_url;
+      setRetrying(false);
+      setMpModalData(data);
     } catch (err) {
       setRetryError(err.message || 'Não foi possível abrir o pagamento. Tente novamente.');
       setRetrying(false);
@@ -817,6 +820,15 @@ export default function Profile() {
           onRetry={handleRetryPayment}
           retrying={retrying}
           retryError={retryError}
+        />
+      )}
+
+      {/* ── Mercado Pago Web Modal ── */}
+      {mpModalData && (
+        <PaymentModal
+          url={mpModalData.checkout_url}
+          pixData={mpModalData}
+          onClose={() => setMpModalData(null)}
         />
       )}
     </>

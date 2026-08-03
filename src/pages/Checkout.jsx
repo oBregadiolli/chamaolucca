@@ -13,6 +13,7 @@ import ReviewStep from '../components/checkout/ReviewStep';
 import AuthModal from '../components/auth/AuthModal';
 import { ClosedStoreDialog } from '../components/ui/StoreDialogs';
 import Icon from '../components/ui/Icon';
+import PaymentModal from '../components/checkout/PaymentModal';
 import { usePageTitle } from '../hooks/usePageTitle';
 import mpLogo from '../assets/mercadopagologo.png';
 import '../styles/checkout-steps.css';
@@ -246,6 +247,8 @@ function CheckoutFlow() {
   const [error,       setError]       = useState(null);
   const [payError,    setPayError]    = useState(null); // { message, orderId, orderNumber, total }
   const [showAuth,    setShowAuth]    = useState(false);
+  const [mpModalData, setMpModalData] = useState(null);
+  const [activeOrderId, setActiveOrderId] = useState(null);
 
   const orderPlaced = useRef(false);
 
@@ -421,7 +424,9 @@ function CheckoutFlow() {
         throw new Error('Não conseguimos conectar ao Mercado Pago. Seu pedido foi salvo — tente novamente em instantes.');
       }
 
-      window.location.href = data.checkout_url;
+      setRedirecting(false);
+      setActiveOrderId(order.id);
+      setMpModalData(data);
 
     } catch (err) {
       setRedirecting(false);
@@ -520,6 +525,18 @@ function CheckoutFlow() {
       {step === CHECKOUT_STEPS.PAYMENT      && <PaymentStep payment={payment} setPayment={setPayment} />}
       {step === CHECKOUT_STEPS.CONFIRMATION && (
         <ReviewStep onPlaceOrder={placeOrder} saving={saving} />
+      )}
+
+      {/* ── Mercado Pago Web Modal ── */}
+      {mpModalData && (
+        <PaymentModal
+          url={mpModalData.checkout_url}
+          pixData={mpModalData}
+          onClose={() => {
+            setMpModalData(null);
+            if (activeOrderId) navigate(`/pedido/${activeOrderId}`);
+          }}
+        />
       )}
     </div>
   );

@@ -2,3 +2,7 @@ project_id = "wjkytzvgbvkcaqjrqsbu"
 
 [api]
 enabled = true
+
+[functions.mp-webhook]
+verify_jwt = false
+

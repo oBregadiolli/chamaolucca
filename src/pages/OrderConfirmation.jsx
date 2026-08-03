@@ -4,6 +4,7 @@ import { supabase } from '../lib/supabase';
 import { useAuth } from '../context/AuthContext';
 import { formatCurrency, formatDate, mpPaymentMethod } from '../lib/utils';
 import Icon from '../components/ui/Icon';
+import PaymentModal from '../components/checkout/PaymentModal';
 import '../styles/order-confirmation.css';
 
 /* ── Order status pipeline ────────────────────── */
@@ -212,6 +213,7 @@ export default function OrderConfirmation() {
   const [retrying,   setRetrying]   = useState(false);
   const [retryError, setRetryError] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
+  const [mpModalData, setMpModalData] = useState(null);
 
   const pollRef   = useRef(null);
   const pollCount = useRef(0);
@@ -322,8 +324,8 @@ export default function OrderConfirmation() {
         throw new Error(friendly);
       }
 
-      // Redireciona para checkout MP
-      window.location.href = data.checkout_url;
+      setRetrying(false);
+      setMpModalData(data);
 
     } catch (err) {
       setRetryError(err.message || 'Não foi possível abrir o pagamento. Tente novamente.');
@@ -531,6 +533,15 @@ export default function OrderConfirmation() {
         <Link to="/" className="oc-btn-primary">Voltar para início</Link>
 
       </div>
+
+      {/* ── Mercado Pago Web Modal ── */}
+      {mpModalData && (
+        <PaymentModal
+          url={mpModalData.checkout_url}
+          pixData={mpModalData}
+          onClose={() => setMpModalData(null)}
+        />
+      )}
     </div>
   );
 }
