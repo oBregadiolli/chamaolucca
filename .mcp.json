@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "supabase-pessoal": {
+      "type": "http",
+      "url": "https://mcp.supabase.com/mcp?project_ref=wjkytzvgbvkcaqjrqsbu&read_only=false",
+      "headers": { "Authorization": "Bearer ${SUPABASE_PAT_PESSOAL}" }
+    }
+  }
+}

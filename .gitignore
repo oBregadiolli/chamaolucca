@@ -12,6 +12,14 @@ dist
 dist-ssr
 *.local
 
+# Notas/documentação de dev pessoais do Brega (não versionar)
+.joao/
+
+# Claude Code — settings locais (mapeiam o PAT pessoal do Supabase; não versionar)
+.claude/settings.local.json
+# Claude Code — config local do projeto (escopo local do MCP grava token literal aqui; não versionar)
+.claude.json
+
 # Environment / secrets — NEVER commit
 .env
 .env.*
