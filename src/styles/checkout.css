@@ -965,6 +965,12 @@
   color: #166534;
 }
 
+.fs-banner-title-icon {
+  font-size: 1.05em;
+  vertical-align: -2px;
+  margin-right: 4px;
+}
+
 .fs-banner-sub {
   font-size: 0.73rem;
   color: #a16207;
@@ -1004,6 +1010,73 @@
 
 .fs-banner-cta:active {
   transform: scale(0.97);
+}
+
+/* ── Variante compacta (carrinho) ─────────────────────── */
+.fs-compact {
+  margin-bottom: 14px;
+}
+
+.fs-compact-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.78rem;
+  font-weight: 600;
+  margin-bottom: 6px;
+}
+
+.fs-compact-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--c-text);
+}
+
+.fs-compact-label strong {
+  color: var(--c-primary);
+  margin: 0 3px;
+}
+
+.fs-compact-pct {
+  color: var(--c-text-muted);
+  font-size: 0.72rem;
+}
+
+.fs-compact-icon {
+  font-size: 15px;
+}
+
+.fs-compact-icon--accent {
+  color: var(--c-accent);
+}
+
+.fs-compact-track {
+  height: 5px;
+  background: var(--c-border-soft);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+
+.fs-compact-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--c-primary-bright), var(--c-primary));
+  border-radius: var(--r-pill);
+  transition: width 0.4s ease;
+}
+
+.fs-compact-pill {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 7px 14px;
+  background: var(--c-primary-bg);
+  border: 1px solid var(--c-primary-border);
+  border-radius: var(--r-pill);
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--c-primary-strong);
 }
 
 /* ── Geolocation button ─────────────────────────────── */

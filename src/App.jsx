@@ -29,6 +29,7 @@ const AdminProducts  = lazy(() => import('./admin/pages/AdminProducts'));
 const AdminCategories = lazy(() => import('./admin/pages/AdminCategories'));
 const AdminSettings = lazy(() => import('./admin/pages/AdminSettings'));
 const AdminCoupons = lazy(() => import('./admin/pages/AdminCoupons'));
+const AdminPromotions = lazy(() => import('./admin/pages/AdminPromotions'));
 const AdminDeliveryExceptions = lazy(() => import('./admin/pages/AdminDeliveryExceptions'));
 const AdminRoutes = lazy(() => import('./admin/pages/AdminRoutes'));
 const AdminRouteDetail = lazy(() => import('./admin/pages/AdminRouteDetail'));
@@ -123,6 +124,7 @@ export default function App() {
                 <Route path="categorias" element={<Suspense fallback={<AdminRouteFallback />}><AdminCategories /></Suspense>} />
                 <Route path="configuracoes" element={<Suspense fallback={<AdminRouteFallback />}><AdminSettings /></Suspense>} />
                 <Route path="cupons" element={<Suspense fallback={<AdminRouteFallback />}><AdminCoupons /></Suspense>} />
+                <Route path="promocoes" element={<Suspense fallback={<AdminRouteFallback />}><AdminPromotions /></Suspense>} />
                 <Route path="agenda" element={<Suspense fallback={<AdminRouteFallback />}><AdminDeliveryExceptions /></Suspense>} />
                 <Route path="rotas" element={<Suspense fallback={<AdminRouteFallback />}><AdminRoutes /></Suspense>} />
                 <Route path="rotas/:id" element={<Suspense fallback={<AdminRouteFallback />}><AdminRouteDetail /></Suspense>} />

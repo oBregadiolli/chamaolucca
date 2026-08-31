@@ -6,8 +6,14 @@ const DEFAULT_ORIGINS = [
 
 function parseAllowedOrigins(): string[] {
   const env = Deno.env.get('ALLOWED_ORIGINS');
-  if (!env?.trim()) return DEFAULT_ORIGINS;
-  return env.split(',').map((s) => s.trim()).filter(Boolean);
+  const fromEnv = env?.trim()
+    ? env.split(',').map((s) => s.trim()).filter(Boolean)
+    : [];
+  // localhost SEMPRE liberado: dev nunca é uma origem de cliente real, e sem
+  // isto o app rodando em localhost fica bloqueado por CORS quando ALLOWED_ORIGINS
+  // está setada em produção (não incluía as origens de dev). Prod continua vindo
+  // da env, então o fallback ([0]) segue sendo a origem de produção.
+  return [...new Set([...fromEnv, ...DEFAULT_ORIGINS])];
 }
 
 function isOriginAllowed(origin: string): boolean {

@@ -16,6 +16,7 @@ const EMPTY = {
   max_uses: '',
   expires_at: '',
   active: true,
+  single_use_per_customer: false,
 };
 
 function formatCurrency(v) {
@@ -74,6 +75,7 @@ function CouponForm({ coupon, onSave, onCancel }) {
         max_uses:       form.max_uses   ? Number(form.max_uses)   : null,
         expires_at:     form.expires_at ? new Date(form.expires_at + 'T23:59:59').toISOString() : null,
         active:         form.active,
+        single_use_per_customer: form.single_use_per_customer ?? false,
       };
       const saved = form.id
         ? await updateCoupon(form.id, payload)
@@ -199,6 +201,16 @@ function CouponForm({ coupon, onSave, onCancel }) {
               <span>
                 <strong>Cupom ativo</strong>
                 <span className="admin-toggle-sub">{form.active ? 'Aceitando novos usos' : 'Desativado'}</span>
+              </span>
+            </label>
+            <label className="admin-toggle-label">
+              <span className="admin-toggle-switch">
+                <input type="checkbox" checked={form.single_use_per_customer ?? false} onChange={e => set('single_use_per_customer', e.target.checked)} />
+                <span className="admin-toggle-thumb" />
+              </span>
+              <span>
+                <strong>Limitado por CPF?</strong>
+                <span className="admin-toggle-sub">{form.single_use_per_customer ? 'Cada CPF pode usar o cupom apenas 1 vez' : 'Sem limite por CPF'}</span>
               </span>
             </label>
           </div>
@@ -340,6 +352,7 @@ export default function AdminCoupons() {
                 <th>Desconto</th>
                 <th>Mínimo</th>
                 <th>Usos</th>
+                <th>Limite</th>
                 <th>Validade</th>
                 <th>Status</th>
                 <th style={{ width: 90 }}>Ações</th>
@@ -378,6 +391,11 @@ export default function AdminCoupons() {
                         {coupon.uses_count}
                         {coupon.max_uses != null && <span style={{ color: '#94a3b8' }}> / {coupon.max_uses}</span>}
                       </span>
+                    </td>
+                    <td>
+                      {coupon.single_use_per_customer
+                        ? <span style={{ fontSize: '0.8rem', color: '#0369a1', background: '#e0f2fe', padding: '2px 8px', borderRadius: 6 }}>por CPF</span>
+                        : <span style={{ color: '#cbd5e1' }}>—</span>}
                     </td>
                     <td>
                       {coupon.expires_at

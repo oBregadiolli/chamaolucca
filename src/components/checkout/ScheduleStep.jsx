@@ -3,15 +3,49 @@ import { useCheckout } from '../../context/CheckoutContext';
 import { getDeliveryDates } from '../../lib/utils';
 import { supabase } from '../../lib/supabase';
 import FreeShippingBanner from './FreeShippingBanner';
+import '../../styles/schedule-step.css';
 
 /* ── Bairros elegíveis para entrega rápida ── */
-const EXPRESS_NEIGHBORHOODS = ['jardim petrolar'];
+const EXPRESS_TOKEN = 'petrolar';
+
+function normalizeText(value) {
+  return (value || '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '') // remove acentos
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, ' ')     // pontuacao/simbolos -> espaco
+    .trim()
+    .replace(/\s+/g, ' ');           // colapsa espacos repetidos
+}
+
+/** Distancia de Levenshtein: nb minimo de edicoes (inserir/remover/trocar
+ *  letra) para transformar uma palavra na outra. 0 = identicas. */
+function levenshtein(a, b) {
+  const m = a.length;
+  const n = b.length;
+  if (!m) return n;
+  if (!n) return m;
+  let prev = Array.from({ length: n + 1 }, (_, i) => i);
+  let curr = new Array(n + 1);
+  for (let i = 1; i <= m; i++) {
+    curr[0] = i;
+    for (let j = 1; j <= n; j++) {
+      const cost = a[i - 1] === b[j - 1] ? 0 : 1;
+      curr[j] = Math.min(prev[j] + 1, curr[j - 1] + 1, prev[j - 1] + cost);
+    }
+    [prev, curr] = [curr, prev];
+  }
+  return prev[n];
+}
 
 function isExpressEligible(neighborhood) {
-  if (!neighborhood) return false;
-  return EXPRESS_NEIGHBORHOODS.some((n) =>
-    neighborhood.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().trim().includes(n)
-  );
+  const normalized = normalizeText(neighborhood);
+  if (!normalized) return false;
+  return normalized.split(' ').some((token) => {
+    if (token.length < 6) return false;             // "petrolar" tem 8; evita casar palavra curta a toa
+    if (token.includes(EXPRESS_TOKEN)) return true; // caminho rapido: contem "petrolar"
+    return levenshtein(token, EXPRESS_TOKEN) <= 2;  // tolera ate 2 erros de digitacao
+  });
 }
 
 export default function ScheduleStep() {
@@ -21,8 +55,6 @@ export default function ScheduleStep() {
     address,
     nextStep, prevStep,
   } = useCheckout();
-
-  const [showExpressInfo, setShowExpressInfo] = useState(false);
 
   // ── Slot availability (fetched per selected date) ──
   const [slots,        setSlots]        = useState([]);
@@ -101,6 +133,23 @@ export default function ScheduleStep() {
   const available = visibleSlots.filter((s) => !s.is_full);
   const allFull   = visibleSlots.length > 0 && available.length === 0;
 
+  // Resumo da escolha (quando dá pra avançar) / dica do que falta (quando não dá)
+  const dateLabel = DELIVERY_DATES.find((d) => d.value === selDate)?.label || '';
+  let choiceSummary = '';
+  let advanceHint   = '';
+  if (deliveryMode === 'express') {
+    if (expressAvailable) choiceSummary = 'Entrega Rápida · hoje · até 10 min';
+    else advanceHint = 'Entrega rápida indisponível no seu bairro';
+  } else if (!selDate) {
+    advanceHint = 'Escolha um dia para entrega';
+  } else if (!selTime) {
+    advanceHint = 'Escolha um horário disponível';
+  } else if (selectedSlot?.is_full) {
+    advanceHint = 'Esse horário lotou — escolha outro';
+  } else if (selectedSlot) {
+    choiceSummary = `Programada · ${dateLabel} · ${selectedSlot.slot_label}`;
+  }
+
   return (
     <div className="co-step-wrapper">
       <FreeShippingBanner />
@@ -118,98 +167,39 @@ export default function ScheduleStep() {
 
         {/* ── Delivery Mode ── */}
         <p className="co-section-label">Tipo de entrega</p>
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
+        <div className="dm-grid">
 
           {/* Programada */}
           <button
             type="button"
+            className="dm-card"
+            data-selected={deliveryMode === 'scheduled'}
+            aria-pressed={deliveryMode === 'scheduled'}
             onClick={() => selectMode('scheduled')}
-            style={{
-              display: 'flex', flexDirection: 'column', alignItems: 'center',
-              justifyContent: 'center', gap: 6, padding: '14px 10px',
-              border: deliveryMode === 'scheduled' ? '2px solid #16a34a' : '1.5px solid #e2e8f0',
-              borderRadius: 14,
-              background: deliveryMode === 'scheduled' ? '#f0fdf4' : '#fff',
-              cursor: 'pointer', transition: 'all 0.2s',
-            }}
           >
-            <span className="material-symbols-rounded"
-              style={{ fontSize: 24, color: deliveryMode === 'scheduled' ? '#16a34a' : '#94a3b8' }}>
-              calendar_month
-            </span>
-            <span style={{ fontSize: '0.82rem', fontWeight: 700,
-              color: deliveryMode === 'scheduled' ? '#15803d' : '#64748b' }}>
-              Programada
-            </span>
-            <span style={{ fontSize: '0.72rem', color: '#9ca3af' }}>Escolha dia e horário</span>
+            <span className="material-symbols-rounded dm-card-icon" aria-hidden="true">calendar_month</span>
+            <span className="dm-card-title">Programada</span>
+            <span className="dm-card-sub">Escolha dia e horário</span>
           </button>
 
           {/* Rápida */}
-          <div style={{ position: 'relative' }}>
-            <button
-              type="button"
-              onClick={() => selectMode('express')}
-              disabled={!expressAvailable}
-              style={{
-                display: 'flex', flexDirection: 'column', alignItems: 'center',
-                justifyContent: 'center', gap: 6, padding: '14px 10px',
-                width: '100%', height: '100%',
-                border: deliveryMode === 'express'
-                  ? '2px solid #16a34a'
-                  : expressAvailable ? '1.5px solid #e2e8f0' : '1.5px solid #f1f5f9',
-                borderRadius: 14,
-                background: deliveryMode === 'express' ? '#f0fdf4' : expressAvailable ? '#fff' : '#fafafa',
-                cursor: expressAvailable ? 'pointer' : 'not-allowed',
-                opacity: expressAvailable ? 1 : 0.55,
-                transition: 'all 0.2s',
-              }}
-            >
-              <span className="material-symbols-rounded" style={{
-                fontSize: 24,
-                color: deliveryMode === 'express' ? '#16a34a' : expressAvailable ? '#f59e0b' : '#d1d5db',
-              }}>bolt</span>
-              <span style={{ fontSize: '0.82rem', fontWeight: 700,
-                color: deliveryMode === 'express' ? '#15803d' : expressAvailable ? '#64748b' : '#cbd5e1' }}>
-                Rápida ⚡
-              </span>
-              <span style={{ fontSize: '0.72rem', color: expressAvailable ? '#9ca3af' : '#d1d5db' }}>
-                {expressAvailable ? 'Até 10 min!' : 'Indisponível no bairro'}
-              </span>
-            </button>
-
-            {/* Info button */}
-            <button
-              type="button"
-              onClick={(e) => { e.stopPropagation(); setShowExpressInfo(!showExpressInfo); }}
-              aria-label="Informações sobre entrega rápida"
-              style={{
-                position: 'absolute', top: 8, right: 8,
-                width: 22, height: 22, borderRadius: '50%', border: 'none',
-                background: showExpressInfo ? '#16a34a' : '#e2e8f0',
-                color: showExpressInfo ? '#fff' : '#64748b',
-                cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 0, transition: 'all 0.2s',
-              }}
-            >
-              <span className="material-symbols-rounded" style={{ fontSize: 15 }}>info</span>
-            </button>
-
-            {showExpressInfo && (
-              <div style={{
-                position: 'absolute', top: 34, right: 0, zIndex: 50,
-                background: '#fff', border: '1.5px solid #e2e8f0',
-                borderRadius: 10, padding: '10px 14px',
-                boxShadow: '0 8px 24px rgba(0,0,0,0.10)',
-                fontSize: '0.8rem', color: '#374151', lineHeight: 1.5, maxWidth: 220,
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, fontWeight: 700, marginBottom: 4, color: '#f59e0b' }}>
-                  <span className="material-symbols-rounded" style={{ fontSize: 16 }}>bolt</span>
-                  Entrega Rápida
-                </div>
-                Entrega realizada em <strong>até 10 minutos</strong> para o bairro <strong>Jardim Petrolar</strong>.
-              </div>
+          <button
+            type="button"
+            className="dm-card dm-card--express"
+            data-selected={deliveryMode === 'express'}
+            data-unavailable={!expressAvailable}
+            aria-pressed={deliveryMode === 'express'}
+            disabled={!expressAvailable}
+            onClick={() => selectMode('express')}
+          >
+            <span className="material-symbols-rounded dm-card-icon" aria-hidden="true">bolt</span>
+            <span className="dm-card-title">Rápida</span>
+            {expressAvailable ? (
+              <span className="dm-card-sub">Até 10 min!</span>
+            ) : (
+              <span className="dm-card-sub dm-card-sub--reason">Só no Jardim Petrolar</span>
             )}
-          </div>
+          </button>
         </div>
 
         {/* ── Agendamento ── */}
@@ -240,46 +230,39 @@ export default function ScheduleStep() {
                 <p className="co-section-label">
                   Escolha o horário
                   {selDate && !loadingSlots && visibleSlots.length > 0 && (
-                    <span style={{
-                      marginLeft: 8, fontSize: '0.72rem', fontWeight: 600,
-                      color: allFull ? '#dc2626' : '#94a3b8',
-                    }}>
-                      {allFull ? '⚠ Todos lotados' : `${available.length} disponível${available.length !== 1 ? 'is' : ''}`}
-                    </span>
+                    allFull ? (
+                      <span className="slot-count slot-count--full">
+                        <span className="material-symbols-rounded slot-count-icon" aria-hidden="true">warning</span>
+                        Todos lotados
+                      </span>
+                    ) : (
+                      <span className="slot-count">
+                        {available.length} disponível{available.length !== 1 ? 'is' : ''}
+                      </span>
+                    )
                   )}
                 </p>
 
                 {loadingSlots ? (
-                  <div style={{ display: 'flex', alignItems: 'center', gap: 8, padding: '14px 0', color: '#94a3b8', fontSize: '0.85rem' }}>
-                    <span className="material-symbols-rounded" style={{ fontSize: 18, animation: 'spin 1s linear infinite' }}>progress_activity</span>
+                  <div className="slot-msg slot-msg--loading">
+                    <span className="material-symbols-rounded slot-msg-icon spin" aria-hidden="true">progress_activity</span>
                     Verificando horários disponíveis...
                   </div>
                 ) : slotsError ? (
-                  <div style={{
-                    padding: '12px 14px', background: '#fef2f2', border: '1px solid #fca5a5',
-                    borderRadius: 10, fontSize: '0.85rem', color: '#b91c1c', marginBottom: 12,
-                  }}>
+                  <div className="slot-msg slot-msg--error">
                     Erro ao carregar horários. Tente recarregar a página.
                   </div>
                 ) : visibleSlots.length === 0 ? (
-                  <div style={{
-                    padding: '14px 16px', background: '#fef2f2', border: '1px solid #fca5a5',
-                    borderRadius: 12, fontSize: '0.85rem', color: '#b91c1c', marginBottom: 12,
-                    display: 'flex', alignItems: 'center', gap: 8,
-                  }}>
-                    <span className="material-symbols-rounded" style={{ fontSize: 18 }}>schedule</span>
+                  <div className="slot-msg slot-msg--empty">
+                    <span className="material-symbols-rounded slot-msg-icon" aria-hidden="true">schedule</span>
                     Nenhum horário disponível para este dia. Escolha outra data ou entre em contato.
                   </div>
                 ) : allFull ? (
-                  <div style={{
-                    padding: '14px 16px', background: '#fff7ed', border: '1px solid #fed7aa',
-                    borderRadius: 12, fontSize: '0.85rem', color: '#c2410c', marginBottom: 12,
-                    display: 'flex', alignItems: 'flex-start', gap: 10,
-                  }}>
-                    <span className="material-symbols-rounded" style={{ fontSize: 20, flexShrink: 0, marginTop: 1 }}>event_busy</span>
+                  <div className="slot-msg slot-msg--full">
+                    <span className="material-symbols-rounded slot-msg-icon" aria-hidden="true">event_busy</span>
                     <div>
-                      <div style={{ fontWeight: 700, marginBottom: 3 }}>Todos os horários deste dia estão lotados.</div>
-                      <div style={{ fontSize: '0.78rem', color: '#9a3412' }}>Escolha outra data para continuar.</div>
+                      <div className="slot-msg-title">Todos os horários deste dia estão lotados.</div>
+                      <div className="slot-msg-sub">Escolha outra data para continuar.</div>
                     </div>
                   </div>
                 ) : null}
@@ -299,47 +282,22 @@ export default function ScheduleStep() {
                         <button
                           key={slot.id}
                           type="button"
+                          className="slot-btn"
+                          data-selected={isSelected}
+                          data-full={isFull}
+                          aria-pressed={isSelected}
                           onClick={() => handleTime(slotValue, isFull)}
                           disabled={isFull}
-                          style={{
-                            padding: '11px 6px 10px',
-                            border: isSelected
-                              ? '2px solid #16a34a'
-                              : isFull ? '1.5px solid #fca5a5' : '2px solid #e5e7eb',
-                            borderRadius: 10,
-                            textAlign: 'center',
-                            background: isSelected
-                              ? '#f0fdf4'
-                              : isFull ? '#fef2f2' : '#fff',
-                            cursor: isFull ? 'not-allowed' : 'pointer',
-                            fontSize: '0.8125rem',
-                            fontWeight: 500,
-                            color: isSelected ? '#16a34a' : isFull ? '#b91c1c' : '#374151',
-                            transition: 'all 0.15s',
-                            position: 'relative',
-                            display: 'flex',
-                            flexDirection: 'column',
-                            alignItems: 'center',
-                            gap: 3,
-                          }}
                           title={isFull && slot.max_orders
                             ? `Lotado (${slot.orders_count}/${slot.max_orders} pedidos)`
                             : slot.slot_label}
                         >
-                          {/* Slot label */}
-                          <span style={{ fontWeight: isSelected ? 700 : 500 }}>
-                            {slot.slot_label}
-                          </span>
+                          <span>{slot.slot_label}</span>
 
-                          {/* Status sub-label */}
                           {isFull ? (
-                            <span style={{ fontSize: '0.65rem', fontWeight: 700, color: '#ef4444' }}>
-                              Lotado
-                            </span>
+                            <span className="slot-btn-status slot-btn-status--full">Lotado</span>
                           ) : pct !== null && pct >= 70 ? (
-                            <span style={{ fontSize: '0.65rem', color: '#f59e0b', fontWeight: 700 }}>
-                              {100 - pct}% livre
-                            </span>
+                            <span className="slot-btn-status slot-btn-status--last">Últimas vagas</span>
                           ) : null}
                         </button>
                       );
@@ -349,8 +307,8 @@ export default function ScheduleStep() {
 
                 {/* Legend for full slots */}
                 {!loadingSlots && visibleSlots.some((s) => s.is_full) && !allFull && (
-                  <div style={{ fontSize: '0.72rem', color: '#94a3b8', marginBottom: 12, display: 'flex', alignItems: 'center', gap: 5 }}>
-                    <span style={{ display: 'inline-block', width: 10, height: 10, background: '#fef2f2', border: '1px solid #fca5a5', borderRadius: 3 }} />
+                  <div className="slot-legend">
+                    <span className="slot-legend-swatch" />
                     Horários em vermelho estão lotados e não podem ser selecionados.
                   </div>
                 )}
@@ -361,23 +319,29 @@ export default function ScheduleStep() {
 
         {/* ── Express confirmation ── */}
         {deliveryMode === 'express' && expressAvailable && (
-          <div style={{
-            padding: '14px 16px',
-            background: 'linear-gradient(135deg, #fef3c7 0%, #fff7ed 100%)',
-            border: '1.5px solid #fde68a', borderRadius: 12, marginBottom: 20,
-            display: 'flex', alignItems: 'center', gap: 10,
-          }}>
-            <span className="material-symbols-rounded" style={{ fontSize: 28, color: '#f59e0b' }}>electric_bolt</span>
+          <div className="express-confirm">
+            <span className="material-symbols-rounded express-confirm-icon" aria-hidden="true">electric_bolt</span>
             <div>
-              <div style={{ fontWeight: 700, fontSize: '0.9rem', color: '#92400e' }}>Entrega em até 10 minutos!</div>
-              <div style={{ fontSize: '0.78rem', color: '#a16207', marginTop: 2 }}>
+              <div className="express-confirm-title">Entrega em até 10 minutos!</div>
+              <div className="express-confirm-sub">
                 Seu pedido será preparado e entregue imediatamente no <strong>Jardim Petrolar</strong>.
               </div>
             </div>
           </div>
         )}
 
-        <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+        {/* ── Resumo da escolha / dica do que falta ── */}
+        {choiceSummary ? (
+          <p className="co-choice-summary">
+            <span className="material-symbols-rounded co-summary-icon" aria-hidden="true">check_circle</span>
+            {choiceSummary}
+          </p>
+        ) : advanceHint ? (
+          <p className="co-advance-hint">
+            <span className="material-symbols-rounded co-hint-icon" aria-hidden="true">info</span>
+            {advanceHint}
+          </p>
+        ) : null}
 
         <div className="co-actions">
           <button className="co-back-btn" onClick={prevStep} type="button" aria-label="Voltar">

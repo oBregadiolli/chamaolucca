@@ -1,0 +1,227 @@
+/* =====================================================================
+   ScheduleStep — tela "Quando entregamos?".
+   Cores sempre via tokens (ver src/styles/tokens.css e /CLAUDE.md).
+   ===================================================================== */
+
+/* ── Cartões de tipo de entrega ── */
+.dm-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.dm-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 10px;
+  width: 100%;
+  height: 100%;
+  min-height: 96px;
+  border: 1.5px solid var(--c-border-strong);
+  border-radius: var(--r-lg);
+  background: var(--c-surface);
+  cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  font-family: inherit;
+  text-align: center;
+}
+
+.dm-card[data-selected="true"] {
+  border: 2px solid var(--c-primary);
+  background: var(--c-primary-bg);
+}
+
+.dm-card[data-unavailable="true"] {
+  background: var(--c-surface-alt);
+  border-color: var(--c-border);
+  cursor: not-allowed;
+}
+
+.dm-card-icon {
+  font-size: 26px;
+  color: var(--c-text-faint);
+  transition: color 0.2s;
+}
+
+.dm-card[data-selected="true"] .dm-card-icon { color: var(--c-primary); }
+.dm-card--express .dm-card-icon { color: var(--c-accent); }
+.dm-card--express[data-selected="true"] .dm-card-icon { color: var(--c-primary); }
+.dm-card[data-unavailable="true"] .dm-card-icon { color: var(--c-disabled); }
+
+.dm-card-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--c-text-muted);
+}
+
+.dm-card[data-selected="true"] .dm-card-title { color: var(--c-primary-strong); }
+.dm-card[data-unavailable="true"] .dm-card-title { color: var(--c-text-muted); }
+
+.dm-card-sub {
+  font-size: 0.72rem;
+  color: var(--c-text-muted);
+}
+
+/* Motivo do indisponível — precisa ser lido, então cor de acento legível */
+.dm-card-sub--reason {
+  color: var(--c-accent-text-soft);
+  font-weight: 600;
+}
+
+/* ── Confirmação express ── */
+.express-confirm {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  margin-bottom: 20px;
+  background: linear-gradient(135deg, var(--c-accent-bg-warm) 0%, var(--c-accent-bg) 100%);
+  border: 1.5px solid var(--c-accent-border);
+  border-radius: var(--r-lg);
+}
+
+.express-confirm-icon { font-size: 28px; color: var(--c-accent); flex-shrink: 0; }
+.express-confirm-title { font-weight: 700; font-size: 0.9rem; color: var(--c-accent-text); }
+.express-confirm-sub { font-size: 0.78rem; color: var(--c-accent-text-soft); margin-top: 2px; }
+
+/* ── Contador de horários ── */
+.slot-count {
+  margin-left: 8px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+
+.slot-count--full {
+  color: var(--c-danger);
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  vertical-align: middle;
+}
+
+.slot-count-icon { font-size: 14px; }
+
+/* ── Botões de horário ── */
+.slot-btn {
+  padding: 11px 6px 10px;
+  border: 2px solid var(--c-border);
+  border-radius: var(--r-md);
+  text-align: center;
+  background: var(--c-surface);
+  cursor: pointer;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--c-text);
+  transition: border-color 0.15s, background 0.15s;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  font-family: inherit;
+}
+
+.slot-btn[data-selected="true"] {
+  border: 2px solid var(--c-primary);
+  background: var(--c-primary-bg);
+  color: var(--c-primary);
+  font-weight: 700;
+}
+
+.slot-btn[data-full="true"] {
+  border: 1.5px solid var(--c-danger-border);
+  background: var(--c-danger-bg);
+  color: var(--c-danger-strong);
+  cursor: not-allowed;
+}
+
+.slot-btn-status { font-size: 0.65rem; font-weight: 700; }
+.slot-btn-status--full { color: var(--c-danger-soft); }
+.slot-btn-status--last { color: var(--c-accent); }
+
+/* ── Mensagens de estado dos horários ── */
+.slot-msg {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+  border-radius: var(--r-lg);
+}
+
+.slot-msg--loading { padding: 14px 0; color: var(--c-text-muted); }
+
+.slot-msg--error,
+.slot-msg--empty {
+  padding: 14px 16px;
+  background: var(--c-danger-bg);
+  border: 1px solid var(--c-danger-border);
+  color: var(--c-danger-strong);
+}
+
+.slot-msg--full {
+  padding: 14px 16px;
+  background: var(--c-accent-bg);
+  border: 1px solid var(--c-accent-border);
+  color: var(--c-accent-text);
+  align-items: flex-start;
+}
+
+.slot-msg-icon { font-size: 18px; flex-shrink: 0; margin-top: 1px; }
+.slot-msg-title { font-weight: 700; margin-bottom: 3px; }
+.slot-msg-sub { font-size: 0.78rem; color: var(--c-accent-text-soft); }
+
+/* ── Legenda de horário lotado ── */
+.slot-legend {
+  font-size: 0.72rem;
+  color: var(--c-text-muted);
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.slot-legend-swatch {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background: var(--c-danger-bg);
+  border: 1px solid var(--c-danger-border);
+  border-radius: 3px;
+}
+
+/* ── Resumo da escolha / dica antes de avançar ── */
+.co-choice-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--c-primary-strong);
+  background: var(--c-primary-bg);
+  border: 1px solid var(--c-primary-border);
+  border-radius: var(--r-md);
+  padding: 9px 12px;
+  margin-bottom: 12px;
+}
+
+.co-advance-hint {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.78rem;
+  color: var(--c-text-muted);
+  margin-bottom: 12px;
+}
+
+.co-summary-icon { font-size: 18px; }
+.co-hint-icon { font-size: 16px; color: var(--c-text-faint); }
+
+/* ── Spinner (movido de estilo inline) ── */
+@keyframes spin { to { transform: rotate(360deg); } }
+.spin { animation: spin 1s linear infinite; }

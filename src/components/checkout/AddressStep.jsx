@@ -360,6 +360,24 @@ export default function AddressStep({ onBackToStore }) {
 
   const isAddressFilled = address.street.trim().length > 0;
 
+  // Autofill de teste — só em localhost. Preenche um endereço válido dentro
+  // da área de atuação (Jardim Petrolar / Alagoinhas), que também é elegível
+  // à entrega express de 10 min. Acelera testar checkout / QR Pix.
+  const isLocalhost = typeof window !== 'undefined'
+    && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+
+  function handleDevAutofill() {
+    setAddress((prev) => ({
+      ...prev,
+      street: 'Tv. Teodoro Neri de Carneiro, 100',
+      neighborhood: 'Jardim Petrolar',
+      city: 'Alagoinhas',
+      phone: '(75) 99999-9999',
+      zipCode: '48005-560',
+      reference: 'Casa de teste — portão azul',
+    }));
+  }
+
   /** Busca localização atual via Geolocation API + reverse geocoding */
   async function handleGeolocation() {
     if (!navigator.geolocation) {
@@ -455,6 +473,27 @@ export default function AddressStep({ onBackToStore }) {
         <div className="co-card-header">
           <PinIcon />
           <h1 className="co-card-title">Onde entregamos?</h1>
+          {isLocalhost && (
+            <button
+              type="button"
+              onClick={handleDevAutofill}
+              title="Preencher endereço de teste (Jardim Petrolar)"
+              style={{
+                marginLeft: 'auto',
+                padding: '6px 10px',
+                fontSize: '0.72rem',
+                fontWeight: 600,
+                color: '#f59e0b',
+                background: 'transparent',
+                border: '1px dashed #f59e0b',
+                borderRadius: 8,
+                cursor: 'pointer',
+                whiteSpace: 'nowrap',
+              }}
+            >
+              ⚙️ Autofill
+            </button>
+          )}
         </div>
 
         <form

@@ -140,9 +140,16 @@ Deno.serve(async (req) => {
           ticket_url: transactionData.ticket_url,
           checkout_url: transactionData.ticket_url || `${baseUrl}/pedido/${order_id}`,
         }, 200, req);
-      } else {
-        console.warn('[create-mp-preference] Direct Pix fallback to preference', pixData);
       }
+      // Pix direto falhou: NÃO cair no Checkout Pro. No celular, o Checkout Pro
+      // faz deep-link pro app do Mercado Pago e empurra criação de conta —
+      // exatamente o que queremos evitar. Retorna erro para o app mostrar
+      // in-app e o cliente tentar de novo, mantendo o fluxo Pix sem login.
+      console.error('[create-mp-preference] Pix direto falhou', pixData);
+      return jsonResponse({
+        ok: false,
+        error: pixData?.message || 'Não foi possível gerar o Pix agora. Tente novamente.',
+      }, 400, req);
     }
 
     // ── FLUXO PREFERENCE (CARTÃO / CHECKOUT PRO) ──

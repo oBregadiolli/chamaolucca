@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { supabase } from '../lib/supabase';
-import { formatCurrency, formatDate, mpPaymentMethod } from '../lib/utils';
+import { formatCurrency, formatDate, mpPaymentMethod, formatCpf, isValidCpf, onlyDigits } from '../lib/utils';
 import Icon from '../components/ui/Icon';
 import PaymentModal from '../components/checkout/PaymentModal';
 import '../styles/profile.css';
@@ -299,7 +299,7 @@ export default function Profile() {
   useEffect(() => {
     if (profile) {
       setName(profile.name  || '');
-      setCpf(profile.cpf    || '');
+      setCpf(profile.cpf ? formatCpf(profile.cpf) : '');
       setWhatsapp(profile.whatsapp || '');
       setPromoOn(profile.promo_emails || false);
     }
@@ -354,14 +354,24 @@ export default function Profile() {
   /* ── Save profile ── */
   async function handleSaveProfile(e) {
     e?.preventDefault();
+    const cpfDigits = onlyDigits(cpf);
+    if (!cpfDigits) return showToast('CPF é obrigatório.', 'error');
+    if (!isValidCpf(cpfDigits)) return showToast('CPF inválido. Verifique os números.', 'error');
     setSaving(true);
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ name, cpf, whatsapp, promo_emails: promoOn })
+        .update({ name, cpf: cpfDigits, whatsapp, promo_emails: promoOn })
         .eq('id', user.id);
-      if (error) showToast('Erro ao salvar. Tente novamente.', 'error');
-      else showToast('Dados salvos com sucesso!');
+      if (error) {
+        if (error.code === '23505' || error.message?.includes('idx_profiles_cpf_unique')) {
+          showToast('Este CPF já está cadastrado em outra conta.', 'error');
+        } else {
+          showToast('Erro ao salvar. Tente novamente.', 'error');
+        }
+      } else {
+        showToast('Dados salvos com sucesso!');
+      }
     } catch {
       showToast('Erro de conexão. Tente novamente.', 'error');
     } finally {
@@ -483,7 +493,7 @@ export default function Profile() {
       if (!data?.ok) throw new Error(data?.error ?? 'Erro no servidor de pagamento.');
 
       setRetrying(false);
-      setMpModalData(data);
+      setMpModalData({ ...data, amount: selectedOrder.total, order_number: selectedOrder.order_number, order_id: selectedOrder.id });
     } catch (err) {
       setRetryError(err.message || 'Não foi possível abrir o pagamento. Tente novamente.');
       setRetrying(false);
@@ -552,8 +562,15 @@ export default function Profile() {
                 <input className="profile-input" value={name} onChange={(e) => setName(e.target.value)} placeholder="Seu nome completo" />
               </div>
               <div className="profile-form-row">
-                <label className="profile-form-label highlight">CPF</label>
-                <input className="profile-input" value={cpf} onChange={(e) => setCpf(e.target.value)} placeholder="Seu cpf" />
+                <label className="profile-form-label highlight">CPF <span style={{ color: '#ef4444', fontWeight: 700 }}>*</span></label>
+                <input
+                  className="profile-input"
+                  value={cpf}
+                  onChange={(e) => setCpf(formatCpf(e.target.value))}
+                  placeholder="000.000.000-00"
+                  maxLength={14}
+                  inputMode="numeric"
+                />
               </div>
               <div className="profile-form-row">
                 <label className="profile-form-label">WhatsApp</label>
@@ -752,6 +769,12 @@ export default function Profile() {
               </div>
             </form>
           </section>
+
+          {/* Logout no fim do conteúdo — só aparece no mobile, onde a
+              sidebar (que contém o "Finalizar sessão") fica escondida. */}
+          <button className="profile-mobile-signout" onClick={handleSignOut}>
+            <Icon name="logout" size={18} /> Finalizar sessão
+          </button>
         </div>
       </div>
 

@@ -634,22 +634,6 @@ select:disabled {
   }
 }
 
-/* ── Responsive: Profile on mobile ──────────── */
-@media (max-width: 768px) {
-  .profile-sidebar {
-    display: none;
-  }
-
-  .profile-page {
-    grid-template-columns: 1fr !important;
-    padding: 16px !important;
-  }
-
-  .profile-content {
-    padding: 0 !important;
-  }
-}
-
 /* ── Micro-interactions ─────────────────────── */
 .product-card-store:active {
   transform: scale(0.99);

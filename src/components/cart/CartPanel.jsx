@@ -4,10 +4,25 @@ import { useAuth } from '../../context/AuthContext';
 import { useStore } from '../../context/StoreContext';
 import { formatCurrency } from '../../lib/utils';
 import Icon from '../ui/Icon';
-import logobylucca from '../../assets/logobylucca.png';
+import FreeShippingBanner from '../checkout/FreeShippingBanner';
+import PromotionMessages from './PromotionMessages';
 
 export default function CartPanel({ onOpenAuth }) {
-  const { items, isOpen, setIsOpen, updateQuantity, removeItem, subtotal, totalItems, syncFailure, dismissSyncFailure } = useCart();
+  const {
+    cartItems,
+    isOpen,
+    setIsOpen,
+    updateQuantity,
+    removeItem,
+    subtotal,
+    totalItems,
+    syncFailure,
+    dismissSyncFailure,
+    promotionDiscount,
+    promotionSubtotal,
+    promotionRewards,
+    promotionNudges,
+  } = useCart();
   const { user } = useAuth();
   const { freeShippingActive, freeShippingAbove, shippingFee } = useStore();
   const navigate = useNavigate();
@@ -93,7 +108,7 @@ export default function CartPanel({ onOpenAuth }) {
             </div>
           )}
 
-          {items.length === 0 ? (
+          {cartItems.length === 0 ? (
             <div className="cart-modal-empty">
               <div className="cart-modal-empty-icon">
                 <Icon name="shopping_cart" size={52} style={{ color: '#d1d5db' }} />
@@ -118,7 +133,7 @@ export default function CartPanel({ onOpenAuth }) {
 
               {/* Item list */}
               <ul className="cart-modal-list">
-                {items.map((item) => (
+                {cartItems.map((item) => (
                   <CartItem
                     key={item.id}
                     item={item}
@@ -127,65 +142,27 @@ export default function CartPanel({ onOpenAuth }) {
                   />
                 ))}
               </ul>
+
+              <PromotionMessages rewards={promotionRewards} nudges={promotionNudges} />
             </>
           )}
         </div>
 
         {/* ── Footer ── */}
-        {items.length > 0 && (() => {
-          const showNudge  = freeShippingActive && freeShippingAbove > 0 && subtotal < freeShippingAbove;
-          const isFree     = freeShippingActive && freeShippingAbove > 0 && subtotal >= freeShippingAbove;
-          const progress   = showNudge ? Math.min(100, (subtotal / freeShippingAbove) * 100) : 100;
-          const remaining  = freeShippingAbove - subtotal;
+        {cartItems.length > 0 && (() => {
+          const displaySubtotal = promotionDiscount > 0 ? promotionSubtotal : subtotal;
+          const isFree = freeShippingActive && freeShippingAbove > 0 && displaySubtotal >= freeShippingAbove;
 
           return (
             <div className="cart-modal-footer">
-              {/* Free shipping nudge */}
-              {showNudge && (
-                <div style={{ marginBottom: 14 }}>
-                  <div style={{
-                    display: 'flex', justifyContent: 'space-between', alignItems: 'center',
-                    fontSize: '0.78rem', fontWeight: 600, marginBottom: 6,
-                  }}>
-                    <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: '#374151' }}>
-                      <span className="material-symbols-rounded" style={{ fontSize: 15, color: '#f59e0b' }}>local_shipping</span>
-                      Falta <strong style={{ color: '#16a34a', margin: '0 3px' }}>{formatCurrency(remaining)}</strong> para frete grátis
-                    </span>
-                    <span style={{ color: '#94a3b8', fontSize: '0.72rem' }}>
-                      {Math.round(progress)}%
-                    </span>
-                  </div>
-                  {/* Progress bar */}
-                  <div style={{
-                    height: 5, background: '#f3f4f6', borderRadius: 99, overflow: 'hidden',
-                  }}>
-                    <div style={{
-                      height: '100%',
-                      width: `${progress}%`,
-                      background: 'linear-gradient(90deg, #22c55e, #16a34a)',
-                      borderRadius: 99,
-                      transition: 'width 0.4s ease',
-                    }} />
-                  </div>
-                </div>
-              )}
-
-              {/* Free badge when reached */}
-              {isFree && (
-                <div style={{
-                  display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'center',
-                  marginBottom: 10, padding: '7px 14px',
-                  background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 99,
-                  fontSize: '0.78rem', fontWeight: 700, color: '#15803d',
-                }}>
-                  <span className="material-symbols-rounded" style={{ fontSize: 15 }}>local_shipping</span>
-                  Frete grátis desbloqueado! 🎉
-                </div>
-              )}
+              {/* Frete grátis — componente único (variante compacta) */}
+              <FreeShippingBanner variant="compact" />
 
               <div className="cart-modal-subtotal-bar">
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                  <span className="cart-modal-subtotal-label">Subtotal:</span>
+                  <span className="cart-modal-subtotal-label">
+                    {promotionDiscount > 0 ? 'Total com promoções:' : 'Subtotal:'}
+                  </span>
                   {!isFree && shippingFee > 0 && (
                     <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
                       + {formatCurrency(shippingFee)} frete
@@ -197,7 +174,12 @@ export default function CartPanel({ onOpenAuth }) {
                     </span>
                   )}
                 </div>
-                <span className="cart-modal-subtotal-value">{formatCurrency(subtotal)}</span>
+                <div className="cart-total-stack">
+                  {promotionDiscount > 0 && (
+                    <span className="cart-promo-discount">−{formatCurrency(promotionDiscount)}</span>
+                  )}
+                  <span className="cart-modal-subtotal-value">{formatCurrency(displaySubtotal)}</span>
+                </div>
               </div>
               <button className="cart-modal-proceed-btn" onClick={handleProceed}>
                 {user ? 'Prosseguir' : 'Fazer login para continuar'}
@@ -214,11 +196,12 @@ export default function CartPanel({ onOpenAuth }) {
 /* ── Individual cart item ── */
 function CartItem({ item, onUpdate, onRemove }) {
   const itemTotal = item.price * item.quantity;
+  const isGift = Boolean(item.isPromotionGift);
 
   const isUrl = item.image_url && item.image_url.startsWith('http');
 
   return (
-    <li className="cart-modal-item">
+    <li className={`cart-modal-item${isGift ? ' cart-modal-item--gift' : ''}`}>
       {/* Product image */}
       <div className="cart-modal-item-img">
         {isUrl ? (
@@ -252,8 +235,15 @@ function CartItem({ item, onUpdate, onRemove }) {
       <div className="cart-modal-item-info">
         <span className="cart-modal-item-qty-badge">{item.quantity}x</span>
         <p className="cart-modal-item-name">{item.name}</p>
+        {isGift && (
+          <span className="cart-gift-badge">
+            <Icon name="redeem" size={14} />
+            Brinde automático
+          </span>
+        )}
 
         {/* Green qty pill */}
+        {!isGift && (
         <div className="cart-modal-qty-bar">
           <button
             className="cart-modal-qty-btn"
@@ -271,8 +261,10 @@ function CartItem({ item, onUpdate, onRemove }) {
             +
           </button>
         </div>
+        )}
 
         {/* Editar / Remover */}
+        {!isGift ? (
         <div className="cart-modal-item-actions">
           <button className="cart-modal-action-btn">
             Editar
@@ -284,11 +276,16 @@ function CartItem({ item, onUpdate, onRemove }) {
             Remover
           </button>
         </div>
+        ) : (
+          <p className="cart-gift-note">
+            Sai da sacola se a promoção deixar de valer.
+          </p>
+        )}
       </div>
 
       {/* Right: item total */}
-      <div className="cart-modal-item-total">
-        {formatCurrency(itemTotal)}
+      <div className={`cart-modal-item-total${isGift ? ' cart-modal-item-total--gift' : ''}`}>
+        {isGift ? 'Grátis' : formatCurrency(itemTotal)}
       </div>
     </li>
   );

@@ -325,7 +325,7 @@ export default function OrderConfirmation() {
       }
 
       setRetrying(false);
-      setMpModalData(data);
+      setMpModalData({ ...data, amount: order.total, order_number: order.order_number, order_id: order.id });
 
     } catch (err) {
       setRetryError(err.message || 'Não foi possível abrir o pagamento. Tente novamente.');

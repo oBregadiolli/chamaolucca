@@ -1,217 +1,302 @@
-.payment-modal-overlay {
+/* =====================================================================
+   PaymentModal — pagamento in-app (Pix + Cartão).
+   Cores via tokens (src/styles/tokens.css). Ver /CLAUDE.md.
+   ===================================================================== */
+
+.pay-overlay {
   position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: rgba(0, 0, 0, 0.65);
-  backdrop-filter: blur(4px);
-  z-index: 99999;
+  inset: 0;
+  z-index: 1000;
   display: flex;
-  justify-content: center;
   align-items: center;
-  padding: 12px;
-  animation: pmFadeIn 0.2s ease-out;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(15, 23, 42, 0.55);
+  backdrop-filter: blur(3px);
+  animation: pay-fade 0.2s ease;
 }
 
-.payment-modal-container {
+.pay-card {
   width: 100%;
-  max-width: 520px;
-  height: auto;
-  max-height: 90vh;
-  background: #ffffff;
-  border-radius: 20px;
+  max-width: 380px;
+  max-height: 92vh;
+  overflow: hidden;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  background: var(--c-surface);
+  border-radius: 20px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.28);
+  animation: pay-pop 0.28s cubic-bezier(0.34, 1.4, 0.5, 1);
 }
 
-.payment-modal-header {
-  height: 56px;
-  padding: 0 20px;
-  background: #f8fafc;
-  border-bottom: 1px solid #e2e8f0;
+/* ── Cabeçalho ── */
+.pay-head {
   display: flex;
   align-items: center;
   justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--c-border-soft);
+  flex-shrink: 0;
 }
 
-.payment-modal-title {
-  display: flex;
+.pay-head-title {
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
-  font-weight: 600;
-  font-size: 15px;
-  color: #0f172a;
+  gap: 7px;
+  font-size: 0.92rem;
+  font-weight: 700;
+  color: var(--c-text-strong);
 }
 
-.payment-modal-close {
-  background: transparent;
-  border: none;
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
+.pay-close {
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  width: 34px;
+  height: 34px;
+  border: none;
+  border-radius: 50%;
+  background: var(--c-border-soft);
+  color: var(--c-text-muted);
   cursor: pointer;
   transition: background 0.15s;
 }
 
-.payment-modal-close:hover {
-  background: #e2e8f0;
-  color: #0f172a;
-}
+.pay-close:hover { background: var(--c-border-strong); }
 
-.payment-modal-body {
-  flex: 1;
+/* ── Cartão (iframe) ── */
+.pay-iframe {
   width: 100%;
-  position: relative;
-  background: #ffffff;
-  overflow-y: auto;
-}
-
-.payment-modal-iframe {
-  width: 100%;
-  height: 650px;
+  height: 70vh;
   border: none;
-  display: block;
 }
 
-/* ── Direct Pix Styling ── */
-.pix-modal-content {
-  padding: 24px 20px;
+/* ── Corpo do Pix ── */
+.pay-pix-body {
+  padding: 18px 20px 22px;
+  overflow-y: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 16px;
   text-align: center;
 }
 
-.pix-badge {
+/* Valor */
+.pay-amount {
+  width: 100%;
   display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 12px 14px;
+  margin-bottom: 16px;
+  background: var(--c-primary-bg);
+  border: 1px solid var(--c-primary-border);
+  border-radius: var(--r-lg);
+}
+
+.pay-amount-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+
+.pay-amount-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: var(--c-primary-strong);
+  line-height: 1.1;
+}
+
+/* QR */
+.pay-qr {
+  display: flex;
+  flex-direction: column;
   align-items: center;
   gap: 8px;
-  background: #ecfdf5;
-  color: #059669;
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 14px;
+  padding: 14px;
+  background: var(--c-surface);
+  border: 1px solid var(--c-border-strong);
+  border-radius: var(--r-lg);
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
 }
 
-.pix-qr-container {
-  padding: 12px;
-  background: #ffffff;
-  border: 2px dashed #059669;
-  border-radius: 16px;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-}
-
-.pix-qr-img {
+.pay-qr-img {
   width: 190px;
   height: 190px;
-  object-fit: contain;
   display: block;
+  border-radius: 6px;
 }
 
-.pix-instructions {
-  font-size: 13px;
-  color: #475569;
-  line-height: 1.5;
-  text-align: left;
+.pay-qr-cap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.74rem;
+  color: var(--c-text-muted);
+}
+
+/* Divisor "ou copie o código" */
+.pay-or {
+  position: relative;
   width: 100%;
-  background: #f8fafc;
-  padding: 12px 16px;
-  border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  margin: 18px 0 12px;
+  text-align: center;
 }
 
-.pix-instructions p {
-  margin: 4px 0;
+.pay-or::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--c-border);
 }
 
-.pix-code-box {
+.pay-or span {
+  position: relative;
+  padding: 0 10px;
+  background: var(--c-surface);
+  font-size: 0.74rem;
+  color: var(--c-text-muted);
+}
+
+/* Botão copiar */
+.pay-copy {
   width: 100%;
-}
-
-.pix-code-input {
-  width: 100%;
-  padding: 10px 14px;
-  font-size: 12px;
-  font-family: monospace;
-  background: #f1f5f9;
-  border: 1px solid #cbd5e1;
-  border-radius: 10px;
-  color: #334155;
-  text-overflow: ellipsis;
-  cursor: pointer;
-}
-
-.pix-copy-btn {
-  width: 100%;
-  padding: 14px;
-  background: #059669;
-  color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  font-weight: 700;
-  font-size: 15px;
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 8px;
+  padding: 13px 16px;
+  border: none;
+  border-radius: var(--r-md);
+  background: var(--c-primary);
+  color: #fff;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: background 0.18s, transform 0.1s;
 }
 
-.pix-copy-btn:hover {
-  background: #047857;
+.pay-copy:hover  { background: var(--c-primary-strong); }
+.pay-copy:active { transform: scale(0.98); }
+
+.pay-copy.is-copied {
+  background: var(--c-primary-bg);
+  color: var(--c-primary-strong);
+  box-shadow: inset 0 0 0 1.5px var(--c-primary);
 }
 
-.pix-copy-btn.copied {
-  background: #0284c7;
+/* Código copia-e-cola */
+.pay-code {
+  width: 100%;
+  margin-top: 10px;
+  padding: 10px 12px;
+  background: var(--c-surface-alt);
+  border: 1px solid var(--c-border);
+  border-radius: var(--r-sm);
+  font-size: 0.7rem;
+  line-height: 1.4;
+  color: var(--c-text-muted);
+  word-break: break-all;
+  cursor: pointer;
+  user-select: all;
 }
 
-.pix-auto-status {
-  display: flex;
+/* Contador */
+.pay-timer {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 14px;
+  font-size: 0.78rem;
+  color: var(--c-text-muted);
+}
+
+.pay-timer strong {
+  color: var(--c-text);
+  font-variant-numeric: tabular-nums;
+}
+
+.pay-timer--expired { color: var(--c-danger); }
+.pay-timer--expired strong { color: var(--c-danger); }
+
+/* Status "aguardando" */
+.pay-status {
+  display: inline-flex;
   align-items: center;
   gap: 8px;
-  font-size: 13px;
-  color: #64748b;
-  margin-top: 4px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--c-border-soft);
+  width: 100%;
+  justify-content: center;
+  font-size: 0.78rem;
+  color: var(--c-text-muted);
 }
 
-.pix-pulse-dot {
-  width: 8px;
-  height: 8px;
-  background-color: #10b981;
+.pay-status-dot {
+  width: 9px;
+  height: 9px;
   border-radius: 50%;
-  animation: pulseDot 1.5s infinite ease-in-out;
+  background: var(--c-primary-bright);
+  box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.55);
+  animation: pay-pulse 1.6s infinite;
 }
 
-@keyframes pulseDot {
-  0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-  70% { transform: scale(1); box-shadow: 0 0 0 8px rgba(16, 185, 129, 0); }
-  100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+/* ── Sucesso ── */
+.pay-success {
+  padding: 40px 24px 44px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
 }
 
-@keyframes pmFadeIn {
-  from { opacity: 0; transform: scale(0.98); }
-  to { opacity: 1; transform: scale(1); }
+.pay-success-badge {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 84px;
+  height: 84px;
+  border-radius: 50%;
+  background: var(--c-primary);
+  color: #fff;
+  margin-bottom: 18px;
+  animation: pay-check 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
-@media (max-width: 640px) {
-  .payment-modal-overlay {
-    padding: 0;
-  }
-  .payment-modal-container {
-    height: 100vh;
-    max-height: 100vh;
-    border-radius: 0;
-  }
+.pay-success-title {
+  font-size: 1.3rem;
+  font-weight: 800;
+  color: var(--c-primary-strong);
+  margin: 0 0 6px;
+}
+
+.pay-success-sub {
+  font-size: 0.9rem;
+  color: var(--c-text-muted);
+  margin: 0;
+}
+
+/* ── Animações ── */
+@keyframes pay-fade { from { opacity: 0; } to { opacity: 1; } }
+
+@keyframes pay-pop {
+  from { opacity: 0; transform: translateY(16px) scale(0.97); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes pay-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.5); }
+  70%  { box-shadow: 0 0 0 9px rgba(34, 197, 94, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+}
+
+@keyframes pay-check {
+  0%   { transform: scale(0); }
+  60%  { transform: scale(1.12); }
+  100% { transform: scale(1); }
 }

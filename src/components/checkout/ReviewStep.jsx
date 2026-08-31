@@ -2,9 +2,11 @@ import { useState, useMemo } from 'react';
 import { useCheckout } from '../../context/CheckoutContext';
 import { useCart } from '../../context/CartContext';
 import { useStore } from '../../context/StoreContext';
+import { useAuth } from '../../context/AuthContext';
 import { formatCurrency } from '../../lib/utils';
 import { validateCoupon } from '../../admin/services/adminCoupons';
 import Icon from '../ui/Icon';
+import PromotionMessages from '../cart/PromotionMessages';
 
 function BasketIcon() {
   return (
@@ -32,8 +34,16 @@ function ArrowLeftIcon() {
  */
 export default function ReviewStep({ onPlaceOrder, saving }) {
   const { prevStep, deliveryMode } = useCheckout();
-  const { items, subtotal } = useCart();
+  const {
+    cartItems,
+    subtotal,
+    promotionDiscount,
+    promotionSubtotal,
+    promotionRewards,
+    promotionNudges,
+  } = useCart();
   const { calcShipping, freeShippingAbove, freeShippingActive } = useStore();
+  const { user } = useAuth();
 
   const [couponInput,  setCouponInput]  = useState('');
   const [couponMsg,    setCouponMsg]    = useState(null); // { text, type: 'success'|'error' }
@@ -47,16 +57,17 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
     return h === 'localhost' || h === '127.0.0.1';
   }, []);
 
-  const shipping = calcShipping(subtotal - discount);
-  const total    = Math.max(0, subtotal - discount + shipping);
+  const subtotalAfterPromotions = promotionDiscount > 0 ? promotionSubtotal : subtotal;
+  const shipping = calcShipping(subtotalAfterPromotions - discount);
+  const total    = Math.max(0, subtotalAfterPromotions - discount + shipping);
 
   const isFreeShipping = shipping === 0;
   const nearFreeShipping =
     freeShippingActive &&
     freeShippingAbove > 0 &&
     !isFreeShipping &&
-    subtotal < freeShippingAbove;
-  const amountToFreeShipping = freeShippingAbove - subtotal;
+    subtotalAfterPromotions < freeShippingAbove;
+  const amountToFreeShipping = freeShippingAbove - subtotalAfterPromotions;
 
   async function handleApplyCoupon() {
     const code = couponInput.trim();
@@ -66,7 +77,7 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
     setValidating(true);
     setCouponMsg(null);
 
-    const result = await validateCoupon(code, subtotal);
+    const result = await validateCoupon(code, subtotalAfterPromotions, user?.id);
 
     if (!result.valid) {
       setDiscount(0);
@@ -76,7 +87,7 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
       setDiscount(result.discountAmount);
       setCouponData(result.coupon);
       setCouponMsg({
-        text: `✓ Cupom aplicado! ${result.discountLabel}`,
+        text: `Cupom aplicado! ${result.discountLabel}`,
         type: 'success',
       });
     }
@@ -107,8 +118,8 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
 
         {/* Items list */}
         <ul className="rv-items-list">
-          {items.map((item) => (
-            <li key={item.id} className="rv-item">
+          {cartItems.map((item) => (
+            <li key={item.id} className={`rv-item${item.isPromotionGift ? ' rv-item--gift' : ''}`}>
               <div className="rv-item-thumb" aria-hidden="true">
                 {item.image_url ? (
                   <>
@@ -133,9 +144,15 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
               </div>
               <span className="rv-item-name">
                 <strong>{item.quantity}x</strong> {item.name}
+                {item.isPromotionGift && (
+                  <span className="rv-gift-badge">
+                    <Icon name="redeem" size={13} />
+                    Brinde automático
+                  </span>
+                )}
               </span>
               <span className="rv-item-price">
-                {formatCurrency(item.price * item.quantity)}
+                {item.isPromotionGift ? 'Grátis' : formatCurrency(item.price * item.quantity)}
               </span>
             </li>
           ))}
@@ -143,52 +160,34 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
 
         {/* Free shipping nudge */}
         {nearFreeShipping && (
-          <div style={{
-            margin: '8px 0 12px',
-            padding: '10px 14px',
-            background: '#fefce8',
-            border: '1px solid #fde68a',
-            borderRadius: 10,
-            fontSize: '0.8rem',
-            color: '#92400e',
-            display: 'flex',
-            alignItems: 'center',
-            gap: 8,
-          }}>
-            <span className="material-symbols-rounded" style={{ fontSize: 18, color: '#f59e0b' }}>local_shipping</span>
+          <div className="rv-fs-nudge">
+            <span className="material-symbols-rounded rv-fs-nudge-icon" style={{ fontSize: 18 }} aria-hidden="true">local_shipping</span>
             Falta <strong>{formatCurrency(amountToFreeShipping)}</strong> para frete grátis!
           </div>
         )}
+
+        <PromotionMessages rewards={promotionRewards} nudges={promotionNudges} />
 
         {/* Coupon */}
         <div className="rv-coupon-label">Tem um cupom de desconto?</div>
         {couponData ? (
           /* Applied state */
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-            padding: '10px 14px',
-            background: '#f0fdf4', border: '1.5px solid #86efac',
-            borderRadius: 10, marginBottom: 8,
-          }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
-              <span className="material-symbols-rounded" style={{ fontSize: 18, color: '#16a34a' }}>confirmation_number</span>
+          <div className="rv-coupon-applied">
+            <div className="rv-coupon-applied-info">
+              <span className="material-symbols-rounded rv-coupon-applied-icon" style={{ fontSize: 18 }} aria-hidden="true">confirmation_number</span>
               <div>
-                <span style={{ fontWeight: 700, color: '#15803d', fontSize: '0.88rem' }}>{couponData.code}</span>
-                <span style={{ fontSize: '0.78rem', color: '#22c55e', marginLeft: 8 }}>{couponMsg?.text}</span>
+                <span className="rv-coupon-applied-code">{couponData.code}</span>
+                <span className="rv-coupon-applied-note">{couponMsg?.text}</span>
               </div>
             </div>
             <button
               type="button"
+              className="rv-coupon-remove"
               onClick={handleRemoveCoupon}
-              style={{
-                background: 'none', border: 'none', cursor: 'pointer',
-                color: '#94a3b8', display: 'flex', padding: 4,
-                fontSize: 0,
-              }}
               aria-label="Remover cupom"
               title="Remover cupom"
             >
-              <span className="material-symbols-rounded" style={{ fontSize: 18 }}>close</span>
+              <span className="material-symbols-rounded" style={{ fontSize: 18 }} aria-hidden="true">close</span>
             </button>
           </div>
         ) : (
@@ -219,12 +218,8 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
               </button>
             </div>
             {couponMsg && (
-              <p style={{
-                display: 'flex', alignItems: 'center', gap: 6,
-                fontSize: '0.8rem', fontWeight: 500, margin: '6px 0 0',
-                color: couponMsg.type === 'success' ? '#16a34a' : '#dc2626',
-              }}>
-                <span className="material-symbols-rounded" style={{ fontSize: 15 }}>
+              <p className={`rv-coupon-inline-msg ${couponMsg.type === 'success' ? 'is-success' : 'is-error'}`}>
+                <span className="material-symbols-rounded" style={{ fontSize: 15 }} aria-hidden="true">
                   {couponMsg.type === 'success' ? 'check_circle' : 'error_outline'}
                 </span>
                 {couponMsg.text}
@@ -239,6 +234,16 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
             <span>Subtotal</span>
             <span>{formatCurrency(subtotal)}</span>
           </div>
+
+          {promotionDiscount > 0 && (
+            <div className="rv-totals-row discount">
+              <span style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
+                <Icon name="sell" size={14} />
+                Promoções
+              </span>
+              <span>−{formatCurrency(promotionDiscount)}</span>
+            </div>
+          )}
 
           {discount > 0 && (
             <div className="rv-totals-row discount">
@@ -287,44 +292,21 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
 
         {/* Dev test toggle — localhost only */}
         {isLocal && (
-          <div style={{
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            gap: 10, margin: '4px 0 0',
-            padding: '8px 14px',
-            background: testMode ? '#fef3c7' : '#f8fafc',
-            border: `1.5px dashed ${testMode ? '#f59e0b' : '#e2e8f0'}`,
-            borderRadius: 10,
-            transition: 'all 0.2s ease',
-          }}>
-            <span style={{ fontSize: '0.78rem', color: testMode ? '#92400e' : '#94a3b8', fontWeight: 600 }}>
-              🧪 TESTE
+          <div className="rv-test" data-on={testMode}>
+            <span className="rv-test-label">
+              <span className="material-symbols-rounded" style={{ fontSize: 15 }} aria-hidden="true">science</span>
+              TESTE
             </span>
             <button
               type="button"
+              className="rv-test-switch"
               onClick={() => setTestMode(!testMode)}
-              style={{
-                position: 'relative',
-                width: 40, height: 22,
-                borderRadius: 11,
-                border: 'none',
-                background: testMode ? '#f59e0b' : '#cbd5e1',
-                cursor: 'pointer',
-                transition: 'background 0.2s ease',
-                padding: 0,
-              }}
               aria-label={testMode ? 'Desativar modo teste' : 'Ativar modo teste'}
+              aria-pressed={testMode}
             >
-              <span style={{
-                position: 'absolute',
-                top: 2, left: testMode ? 20 : 2,
-                width: 18, height: 18,
-                borderRadius: '50%',
-                background: '#fff',
-                boxShadow: '0 1px 3px rgba(0,0,0,0.15)',
-                transition: 'left 0.2s ease',
-              }} />
+              <span className="rv-test-thumb" />
             </button>
-            <span style={{ fontSize: '0.72rem', color: '#94a3b8' }}>
+            <span className="rv-test-hint">
               {testMode ? 'Pula MP, marca como pago' : 'Pagamento real'}
             </span>
           </div>
@@ -361,13 +343,14 @@ export default function ReviewStep({ onPlaceOrder, saving }) {
                   borderRadius: '50%', animation: 'spin 0.8s linear infinite',
                   display: 'inline-block', flexShrink: 0,
                 }} />
-                <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
                 Redirecionando…
               </>
             ) : (
               <>
-                <span className="material-symbols-rounded" style={{ fontSize: '1.15rem' }}>payment</span>
-                {deliveryMode === 'express' ? 'Pagar Agora ⚡' : 'Ir para Pagamento'}
+                <span className="material-symbols-rounded rv-pay-icon" aria-hidden="true">
+                  {deliveryMode === 'express' ? 'bolt' : 'payment'}
+                </span>
+                {deliveryMode === 'express' ? 'Pagar Agora' : 'Ir para Pagamento'}
               </>
             )}
           </button>

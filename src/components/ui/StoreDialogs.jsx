@@ -3,7 +3,7 @@ import { useId } from 'react';
 /* =====================================================
    ClosedStoreDialog — exibido fora do horário de func.
    ===================================================== */
-export function ClosedStoreDialog({ openTime, closeTime, onClose }) {
+export function ClosedStoreDialog({ openTime, closeTime, onClose, onTest }) {
   const titleId = useId();
   const descId = useId();
 
@@ -32,6 +32,26 @@ export function ClosedStoreDialog({ openTime, closeTime, onClose }) {
             {' '}Abrimos às <strong>{openTime}</strong> e fechamos às <strong>{closeTime}</strong>.
           </p>
           <button type="button" className="gs-ok-btn" onClick={onClose}>OK</button>
+          {onTest && (
+            <button
+              type="button"
+              onClick={onTest}
+              style={{
+                marginTop: 10,
+                width: '100%',
+                padding: '10px 16px',
+                fontSize: '0.82rem',
+                fontWeight: 600,
+                color: '#f59e0b',
+                background: 'transparent',
+                border: '1px dashed #f59e0b',
+                borderRadius: 10,
+                cursor: 'pointer',
+              }}
+            >
+              ⚙️ Testar mesmo assim (localhost)
+            </button>
+          )}
         </div>
       </div>
     </div>

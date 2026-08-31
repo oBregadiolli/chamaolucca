@@ -1,28 +1,56 @@
 import { useCart } from '../../context/CartContext';
 import { useStore } from '../../context/StoreContext';
-
-function formatCurrency(v) {
-  return v.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-}
+import { formatCurrency } from '../../lib/utils';
 
 /**
- * FreeShippingBanner — card motivacional de frete grátis.
- * Exibe barra de progresso + valor faltante + CTA para voltar à loja.
+ * FreeShippingBanner — progresso/desbloqueio de frete grátis.
+ * Fonte única de verdade: usado no checkout e no carrinho.
  *
  * Props:
- *  - onGoToStore: callback para voltar à loja / abrir carrinho
+ *  - variant: 'banner' (checkout, padrão) | 'compact' (carrinho)
+ *  - onGoToStore: callback do CTA "Comprar mais" (só no variant banner)
  */
-export default function FreeShippingBanner({ onGoToStore }) {
-  const { subtotal } = useCart();
+export default function FreeShippingBanner({ variant = 'banner', onGoToStore }) {
+  const { subtotal, promotionDiscount, promotionSubtotal } = useCart();
   const { freeShippingActive, freeShippingAbove, shippingFee } = useStore();
 
   // Não mostra se frete grátis desativado ou sem limite configurado
   if (!freeShippingActive || !freeShippingAbove || freeShippingAbove <= 0) return null;
 
-  const isFree     = subtotal >= freeShippingAbove;
-  const remaining  = Math.max(0, freeShippingAbove - subtotal);
-  const progress   = Math.min(100, (subtotal / freeShippingAbove) * 100);
+  const subtotalForShipping = promotionDiscount > 0 ? promotionSubtotal : subtotal;
+  const isFree    = subtotalForShipping >= freeShippingAbove;
+  const remaining = Math.max(0, freeShippingAbove - subtotalForShipping);
+  const progress  = Math.min(100, (subtotalForShipping / freeShippingAbove) * 100);
 
+  /* ── Variante compacta (carrinho) ── */
+  if (variant === 'compact') {
+    return (
+      <div className="fs-compact" data-free={isFree || undefined}>
+        {isFree ? (
+          <div className="fs-compact-pill">
+            <span className="material-symbols-rounded fs-compact-icon" aria-hidden="true">local_shipping</span>
+            Frete grátis desbloqueado!
+            <span className="material-symbols-rounded fs-compact-icon" aria-hidden="true">celebration</span>
+          </div>
+        ) : (
+          <>
+            <div className="fs-compact-row">
+              <span className="fs-compact-label">
+                <span className="material-symbols-rounded fs-compact-icon fs-compact-icon--accent" aria-hidden="true">local_shipping</span>
+                Falta <strong>{formatCurrency(remaining)}</strong> para frete grátis
+              </span>
+              <span className="fs-compact-pct">{Math.round(progress)}%</span>
+            </div>
+            <div className="fs-compact-track">
+              <div className="fs-compact-fill" style={{ width: `${progress}%` }} />
+            </div>
+          </>
+        )}
+      </div>
+    );
+  }
+
+  /* ── Variante banner (checkout) ── */
   return (
     <div className="fs-banner" data-free={isFree || undefined}>
       {/* Progress bar */}
@@ -33,7 +61,7 @@ export default function FreeShippingBanner({ onGoToStore }) {
       <div className="fs-banner-content">
         {/* Icon */}
         <div className="fs-banner-icon-wrap">
-          <span className="material-symbols-rounded fs-banner-icon">
+          <span className="material-symbols-rounded fs-banner-icon" aria-hidden="true">
             {isFree ? 'check_circle' : 'local_shipping'}
           </span>
         </div>
@@ -43,7 +71,8 @@ export default function FreeShippingBanner({ onGoToStore }) {
           {isFree ? (
             <>
               <span className="fs-banner-title fs-banner-title--free">
-                🎉 Você ganhou frete grátis!
+                <span className="material-symbols-rounded fs-banner-title-icon" aria-hidden="true">celebration</span>
+                Você ganhou frete grátis!
               </span>
               <span className="fs-banner-sub">
                 Economize <strong>{formatCurrency(shippingFee)}</strong> neste pedido
@@ -63,12 +92,8 @@ export default function FreeShippingBanner({ onGoToStore }) {
 
         {/* CTA */}
         {!isFree && onGoToStore && (
-          <button
-            type="button"
-            className="fs-banner-cta"
-            onClick={onGoToStore}
-          >
-            <span className="material-symbols-rounded" style={{ fontSize: 16 }}>add_shopping_cart</span>
+          <button type="button" className="fs-banner-cta" onClick={onGoToStore}>
+            <span className="material-symbols-rounded" style={{ fontSize: 16 }} aria-hidden="true">add_shopping_cart</span>
             Comprar mais
           </button>
         )}

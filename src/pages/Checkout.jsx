@@ -250,6 +250,12 @@ function CheckoutFlow() {
   const [mpModalData, setMpModalData] = useState(null);
   const [activeOrderId, setActiveOrderId] = useState(null);
 
+  // Bypass de loja-fechada só para testar em localhost (ex.: gerar o QR Pix
+  // fora do horário). Nunca vale em produção: depende de hostname localhost.
+  const isLocalhost = typeof window !== 'undefined'
+    && /^(localhost|127\.0\.0\.1)$/.test(window.location.hostname);
+  const [devBypassClosed, setDevBypassClosed] = useState(false);
+
   const orderPlaced = useRef(false);
 
   /* Guards — don't redirect if we just placed an order */
@@ -324,7 +330,7 @@ function CheckoutFlow() {
 
     if (!user) { setError('Você precisa estar logado para finalizar o pedido.'); return; }
     if (items.length === 0) { setError('Seu carrinho está vazio.'); return; }
-    if (!storeLoading && !isOpen) {
+    if (!storeLoading && !isOpen && !(isLocalhost && devBypassClosed)) {
       setError(`Loja fechada no momento. Abrimos às ${openTime} e fechamos às ${closeTime}.`);
       return;
     }
@@ -426,7 +432,7 @@ function CheckoutFlow() {
 
       setRedirecting(false);
       setActiveOrderId(order.id);
-      setMpModalData(data);
+      setMpModalData({ ...data, amount: total, order_number: order.order_number, order_id: order.id });
 
     } catch (err) {
       setRedirecting(false);
@@ -435,8 +441,8 @@ function CheckoutFlow() {
         orderId:       order.id,
         orderNumber:   order.order_number,
         total,
-        shipping:      shippingApplied,
-        discount:      discountApplied,
+        shipping,
+        discount,
         order,
         itemsSnapshot,
       });
@@ -473,11 +479,12 @@ function CheckoutFlow() {
   // ── Steps do checkout ────────────────────────────
   return (
     <div className="co-page">
-      {!storeLoading && !isOpen && (
+      {!storeLoading && !isOpen && !devBypassClosed && (
         <ClosedStoreDialog
           openTime={openTime}
           closeTime={closeTime}
           onClose={() => navigate('/loja')}
+          onTest={isLocalhost ? () => setDevBypassClosed(true) : undefined}
         />
       )}
 

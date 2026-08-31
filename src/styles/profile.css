@@ -42,6 +42,9 @@
 .profile-nav-item.danger { color: #ef4444; }
 .profile-nav-item.danger:hover { background: #fef2f2; }
 
+/* Botão de logout do mobile: escondido no desktop (a sidebar já cobre). */
+.profile-mobile-signout { display: none; }
+
 /* ── Content ── */
 .profile-content { min-width: 0; }
 
@@ -885,44 +888,33 @@
     padding: 0 0 80px;
   }
 
-  /* Sidebar → sticky pill nav at top */
+  /* A sidebar é só âncora de scroll; no mobile a página inteira já rola,
+     então a barra não agrega — escondemos. O logout ganha um botão
+     dedicado no fim do conteúdo (.profile-mobile-signout). */
   .profile-sidebar {
-    position: sticky;
-    top: 56px;
-    z-index: 100;
-    border-radius: 0;
-    border-left: none;
-    border-right: none;
-    border-top: none;
-    border-bottom: 1px solid #e5e7eb;
+    display: none;
+  }
+
+  .profile-mobile-signout {
     display: flex;
-    flex-direction: row;
-    overflow-x: auto;
-    scrollbar-width: none;
-    background: #fff;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  }
-
-  .profile-sidebar::-webkit-scrollbar { display: none; }
-
-  .profile-nav-item {
-    padding: 12px 18px;
-    border-bottom: none !important;
-    border-right: 1px solid #f3f4f6;
-    white-space: nowrap;
-    font-size: 0.82rem;
-    flex-shrink: 0;
-  }
-
-  .profile-nav-item:last-child {
-    border-right: none;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    margin: 8px 0 24px;
+    padding: 14px 20px;
+    font-size: 0.95rem;
+    font-weight: 600;
     color: #ef4444;
+    background: #fef2f2;
+    border: 1px solid #fecaca;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: background 0.15s;
   }
 
-  .profile-nav-item.active {
-    border-bottom: 2px solid #16a34a !important;
-    background: #f0fdf4;
-    color: #16a34a;
+  .profile-mobile-signout:active {
+    background: #fee2e2;
   }
 
   /* Content area */
@@ -1047,11 +1039,6 @@
 }
 
 @media (max-width: 480px) {
-  .profile-nav-item {
-    padding: 11px 14px;
-    font-size: 0.78rem;
-  }
-
   .oh-card-bottom {
     flex-direction: column;
     gap: 4px;

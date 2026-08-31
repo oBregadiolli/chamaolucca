@@ -78,3 +78,35 @@ export function getDeliveryTimesForDate(dateValue) {
 export function generateOrderNumber() {
   return Math.floor(1000 + Math.random() * 9000);
 }
+
+/** Aplica a máscara 000.000.000-00 conforme o usuário digita. */
+export function formatCpf(value) {
+  const digits = onlyDigits(value).slice(0, 11);
+  if (digits.length <= 3) return digits;
+  if (digits.length <= 6) return digits.replace(/^(\d{3})(\d{0,3})/, '$1.$2');
+  if (digits.length <= 9) return digits.replace(/^(\d{3})(\d{3})(\d{0,3})/, '$1.$2.$3');
+  return digits.replace(/^(\d{3})(\d{3})(\d{3})(\d{0,2})/, '$1.$2.$3-$4');
+}
+
+export function onlyDigits(value) {
+  return String(value ?? '').replace(/\D/g, '');
+}
+
+/** Valida CPF pelos dois dígitos verificadores. */
+export function isValidCpf(raw) {
+  const digits = onlyDigits(raw);
+  if (digits.length !== 11) return false;
+  if (/^(\d)\1{10}$/.test(digits)) return false; // 000.000.000-00, 111... etc
+
+  let sum = 0;
+  for (let i = 0; i < 9; i++) sum += Number(digits[i]) * (10 - i);
+  let rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  if (rest !== Number(digits[9])) return false;
+
+  sum = 0;
+  for (let i = 0; i < 10; i++) sum += Number(digits[i]) * (11 - i);
+  rest = (sum * 10) % 11;
+  if (rest === 10) rest = 0;
+  return rest === Number(digits[10]);
+}

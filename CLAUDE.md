@@ -43,6 +43,8 @@ serve checkout e carrinho a partir do mesmo código.
   (`IF NOT EXISTS`, `CREATE OR REPLACE`).
 - Enforcement de regra crítica no servidor (edge function / trigger / índice),
   não só no front. O front valida para UX; o servidor valida para verdade.
+- Schema de e-commerce (produtos, carrinho, pedidos, preços, promoção/cupom):
+  ver [`docs/schema-reference.md`](docs/schema-reference.md) antes de mexer.
 
 ## Supabase — qual MCP usar (importante)
 Este projeto usa o MCP `supabase-pessoal` definido em `.mcp.json` na raiz

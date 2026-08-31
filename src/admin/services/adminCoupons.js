@@ -42,7 +42,7 @@ export async function toggleCouponActive(id, active) {
 }
 
 /** Validate a coupon code and return computed discount amount */
-export async function validateCoupon(code, subtotal) {
+export async function validateCoupon(code, subtotal, userId) {
   const { data, error } = await supabase
     .from('coupons')
     .select('*')
@@ -59,6 +59,17 @@ export async function validateCoupon(code, subtotal) {
 
   if (data.max_uses != null && data.uses_count >= data.max_uses) {
     return { valid: false, reason: 'Este cupom atingiu o limite de usos.' };
+  }
+
+  if (data.single_use_per_customer && userId) {
+    const { count } = await supabase
+      .from('orders')
+      .select('id', { count: 'exact', head: true })
+      .eq('user_id', userId)
+      .eq('coupon_code', data.code);
+    if (count && count > 0) {
+      return { valid: false, reason: 'Você já utilizou este cupom.' };
+    }
   }
 
   const minOrder = parseFloat(data.min_order ?? 0);

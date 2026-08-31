@@ -1,5 +1,12 @@
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.49.1';
 import { handleOptions, jsonResponse } from '../_shared/cors.ts';
+import {
+  applyPromotionsToLineItems,
+  attachPromotionProducts,
+  effectivePrice,
+  evaluatePromotions,
+  getPromotionProductIds,
+} from '../_shared/promotionEngine.js';
 import { getServiceClient } from '../_shared/supabaseAdmin.ts';
 
 type ProductRow = {
@@ -72,13 +79,6 @@ function isAddressInCoverage(
   }
 
   return false;
-}
-
-function effectivePrice(product: ProductRow): number {
-  const price = Number(product.price);
-  const promo = product.promotional_price != null ? Number(product.promotional_price) : null;
-  if (promo != null && promo > 0 && promo < price) return promo;
-  return price;
 }
 
 function isStoreOpen(openTime: string, closeTime: string, now = new Date()): boolean {
@@ -167,7 +167,7 @@ Deno.serve(async (req) => {
       image_url: string | null;
     }> = [];
 
-    for (const item of cartItems as CartItemRow[]) {
+    for (const item of cartItems as unknown as CartItemRow[]) {
       const product = item.products;
       if (!product?.active) {
         return jsonResponse({
@@ -192,8 +192,44 @@ Deno.serve(async (req) => {
       });
     }
 
-    const subtotal = parseFloat(
+    const baseSubtotal = parseFloat(
       lineItems.reduce((sum, item) => sum + item.unit_price * item.quantity, 0).toFixed(2),
+    );
+
+    let activePromotions: Array<Record<string, unknown>> = [];
+    const { data: promotionRows, error: promotionsError } = await supabase
+      .from('promotions')
+      .select('*')
+      .eq('active', true)
+      .order('priority', { ascending: true })
+      .order('created_at', { ascending: false });
+
+    if (promotionsError) {
+      console.warn('[place-order] promotions unavailable:', promotionsError.message);
+    } else {
+      const productIds = getPromotionProductIds(promotionRows ?? []);
+      let promotionProducts: Array<Record<string, unknown>> = [];
+
+      if (productIds.length > 0) {
+        const { data: productRows, error: promoProductsError } = await supabase
+          .from('products')
+          .select('id, name, price, promotional_price, image_url, active')
+          .in('id', productIds);
+
+        if (promoProductsError) {
+          console.warn('[place-order] promotion products unavailable:', promoProductsError.message);
+        } else {
+          promotionProducts = productRows ?? [];
+        }
+      }
+
+      activePromotions = attachPromotionProducts(promotionRows ?? [], promotionProducts);
+    }
+
+    const promotionSummary = evaluatePromotions(lineItems, activePromotions);
+    const promotedLineItems = applyPromotionsToLineItems(lineItems, promotionSummary);
+    const subtotal = parseFloat(
+      promotedLineItems.reduce((sum, item) => sum + item.unit_price * item.quantity, 0).toFixed(2),
     );
 
     let discount = 0;
@@ -215,6 +251,16 @@ Deno.serve(async (req) => {
         }
         if (coupon.max_uses != null && coupon.uses_count >= coupon.max_uses) {
           return jsonResponse({ ok: false, error: 'Cupom esgotado' }, 400, req);
+        }
+        if (coupon.single_use_per_customer) {
+          const { count } = await supabase
+            .from('orders')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('coupon_code', coupon.code);
+          if (count && count > 0) {
+            return jsonResponse({ ok: false, error: 'Você já utilizou este cupom' }, 400, req);
+          }
         }
         const minOrder = Number(coupon.min_order ?? 0);
         if (minOrder > 0 && subtotal < minOrder) {
@@ -240,7 +286,14 @@ Deno.serve(async (req) => {
     const allowTestBypass =
       Deno.env.get('ALLOW_TEST_ORDERS') === 'true' && test_mode === true;
 
-    if (!allowTestBypass) {
+    // Bypass SÓ de horário/cobertura para desenvolvimento em localhost.
+    // Diferente do test_mode: NÃO auto-aprova o pedido, então o Pix é gerado
+    // de verdade (permite testar o QR fora do horário). Cliente real nunca
+    // tem origin localhost, então isto não vale em produção.
+    const origin = req.headers.get('origin') || '';
+    const isLocalhostOrigin = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin);
+
+    if (!allowTestBypass && !isLocalhostOrigin) {
       const openTime = cfg.open_time || '07:00';
       const closeTime = cfg.close_time || '23:00';
       if (!isStoreOpen(openTime, closeTime)) {
@@ -306,7 +359,7 @@ Deno.serve(async (req) => {
     }
 
     const { error: itemsError } = await supabase.from('order_items').insert(
-      lineItems.map((item) => ({
+      promotedLineItems.map((item) => ({
         order_id: order.id,
         product_id: item.product_id,
         product_name: item.product_name,
@@ -356,7 +409,7 @@ Deno.serve(async (req) => {
       order.payment_status = 'approved';
     }
 
-    const mpItems = lineItems.map((item) => ({
+    const mpItems = promotedLineItems.filter((item) => item.unit_price > 0).map((item) => ({
       title: item.product_name,
       quantity: item.quantity,
       unit_price: item.unit_price,
@@ -367,6 +420,16 @@ Deno.serve(async (req) => {
       order,
       items: mpItems,
       subtotal,
+      base_subtotal: baseSubtotal,
+      promotion_discount: promotionSummary.promotionDiscount,
+      promotions: promotionSummary.eligible.map((reward) => ({
+        id: reward.promotion.id,
+        name: reward.promotion.name,
+        type: reward.type,
+        product_name: reward.productName,
+        quantity: reward.quantity,
+        discount_amount: reward.discountAmount,
+      })),
       shipping,
       discount,
       total,

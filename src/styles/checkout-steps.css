@@ -508,6 +508,11 @@
   padding: 12px 14px;
 }
 
+.rv-item--gift {
+  background: #f0fdf4;
+  border-color: #bbf7d0;
+}
+
 /* Thumbnail */
 .rv-item-thumb {
   width: 48px;
@@ -539,6 +544,20 @@
   line-height: 1.35;
 }
 
+.rv-gift-badge {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #dcfce7;
+  color: #15803d;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
 .rv-item-name strong {
   color: #111;
 }
@@ -548,6 +567,10 @@
   font-weight: 700;
   color: #111;
   white-space: nowrap;
+}
+
+.rv-item--gift .rv-item-price {
+  color: #16a34a;
 }
 
 /* Coupon */
@@ -662,4 +685,120 @@
 .rv-back:hover {
   background: #222;
 }
+
+/* Aviso de frete grátis (review) */
+.rv-fs-nudge {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 8px 0 14px;
+  padding: 10px 14px;
+  background: var(--c-accent-bg);
+  border: 1px solid var(--c-accent-border);
+  border-radius: var(--r-md);
+  font-size: 0.8rem;
+  color: var(--c-accent-text);
+}
+
+.rv-fs-nudge-icon { color: var(--c-accent); }
+
+/* Cupom aplicado */
+.rv-coupon-applied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 14px;
+  margin-bottom: 8px;
+  background: var(--c-primary-bg);
+  border: 1.5px solid var(--c-primary-border);
+  border-radius: var(--r-md);
+}
+
+.rv-coupon-applied-info { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.rv-coupon-applied-icon { color: var(--c-primary); }
+.rv-coupon-applied-code { font-weight: 700; color: var(--c-primary-strong); font-size: 0.88rem; }
+.rv-coupon-applied-note { font-size: 0.78rem; color: var(--c-primary-bright); margin-left: 8px; }
+
+.rv-coupon-remove {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--c-text-faint);
+  display: flex;
+  padding: 4px;
+  flex-shrink: 0;
+}
+.rv-coupon-remove:hover { color: var(--c-text-muted); }
+
+/* Mensagem inline do cupom (estado de input) */
+.rv-coupon-inline-msg {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin: 6px 0 0;
+}
+.rv-coupon-inline-msg.is-success { color: var(--c-primary); }
+.rv-coupon-inline-msg.is-error   { color: var(--c-danger); }
+
+/* Toggle de teste (dev / localhost) */
+.rv-test {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 4px;
+  padding: 8px 14px;
+  border-radius: var(--r-md);
+  background: var(--c-surface-alt);
+  border: 1.5px dashed var(--c-border-strong);
+  transition: background 0.2s, border-color 0.2s;
+}
+.rv-test[data-on="true"] { background: var(--c-accent-bg-warm); border-color: var(--c-accent); }
+
+.rv-test-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--c-text-muted);
+}
+.rv-test[data-on="true"] .rv-test-label { color: var(--c-accent-text); }
+
+.rv-test-switch {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  border-radius: 11px;
+  border: none;
+  background: var(--c-disabled);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+.rv-test[data-on="true"] .rv-test-switch { background: var(--c-accent); }
+
+.rv-test-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+  transition: left 0.2s;
+}
+.rv-test[data-on="true"] .rv-test-thumb { left: 20px; }
+
+.rv-test-hint { font-size: 0.72rem; color: var(--c-text-faint); }
+
+/* Ícone dentro do botão de pagar */
+.rv-pay-icon { font-size: 1.15rem; }
+
+@keyframes spin { to { transform: rotate(360deg); } }
 

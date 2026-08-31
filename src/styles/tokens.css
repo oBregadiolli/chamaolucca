@@ -1,0 +1,50 @@
+/* =====================================================================
+   Design tokens — fonte única de verdade das cores/raios do app.
+   Regra: componentes NÃO usam hex cru. Sempre var(--token).
+   Ao precisar de uma cor nova, adicione um token aqui antes de usar.
+   Ver convenções em /CLAUDE.md.
+   ===================================================================== */
+:root {
+  /* ── Marca / sucesso (verde) ── */
+  --c-primary:        #16a34a;
+  --c-primary-strong: #15803d;
+  --c-primary-bright: #22c55e;
+  --c-primary-bg:     #f0fdf4;
+  --c-primary-border: #bbf7d0;
+
+  /* ── Express / destaque (âmbar) ── */
+  --c-accent:          #f59e0b;
+  --c-accent-strong:   #d97706;
+  --c-accent-bg:       #fff7ed;
+  --c-accent-bg-warm:  #fef3c7;
+  --c-accent-border:   #fde68a;
+  --c-accent-text:     #92400e;
+  --c-accent-text-soft:#a16207;
+
+  /* ── Perigo / lotado (vermelho) ── */
+  --c-danger:        #dc2626;
+  --c-danger-strong: #b91c1c;
+  --c-danger-soft:   #ef4444;
+  --c-danger-bg:     #fef2f2;
+  --c-danger-border: #fca5a5;
+
+  /* ── Texto ── */
+  --c-text:        #374151;
+  --c-text-strong: #111827;
+  --c-text-muted:  #6b7280;  /* legível sobre branco (WCAG AA); substitui #9ca3af */
+  --c-text-faint:  #94a3b8;  /* uso decorativo apenas (não para texto essencial) */
+
+  /* ── Superfícies / bordas ── */
+  --c-surface:       #ffffff;
+  --c-surface-alt:   #fafafa;
+  --c-border:        #e5e7eb;
+  --c-border-strong: #e2e8f0;
+  --c-border-soft:   #f1f5f9;
+  --c-disabled:      #d1d5db;
+
+  /* ── Raios ── */
+  --r-sm:   8px;
+  --r-md:   10px;
+  --r-lg:   14px;
+  --r-pill: 99px;
+}

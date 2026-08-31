@@ -406,6 +406,14 @@
   border-bottom: 1px solid #f9fafb;
 }
 
+.cart-sidebar-item--gift {
+  margin: 6px 0;
+  padding: 10px;
+  border: 1px solid #bbf7d0;
+  border-radius: 12px;
+  background: #f0fdf4;
+}
+
 .cart-sidebar-item:last-child { border-bottom: none; }
 
 .cart-sidebar-item-row {
@@ -442,12 +450,21 @@
   color: #9ca3af;
 }
 
+.cart-sidebar-item--gift .cart-sidebar-item-sub {
+  color: #16a34a;
+  font-weight: 700;
+}
+
 .cart-sidebar-item-right { text-align: right; flex-shrink: 0; }
 
 .cart-sidebar-item-price {
   font-size: 0.8125rem;
   font-weight: 700;
   color: #111;
+}
+
+.cart-sidebar-item--gift .cart-sidebar-item-price {
+  color: #16a34a;
 }
 
 .cart-sidebar-item-qty {
@@ -459,6 +476,11 @@
   font-weight: 600;
   color: #374151;
   margin-top: 2px;
+}
+
+.cart-sidebar-item--gift .cart-sidebar-item-qty {
+  background: #dcfce7;
+  color: #15803d;
 }
 
 /* Sidebar qty pill (compact) */
@@ -520,6 +542,10 @@
 .cart-sidebar-subtotal-value {
   font-size: 0.9375rem;
   font-weight: 700;
+}
+
+.cart-sidebar-subtotal .cart-total-stack {
+  align-items: flex-end;
 }
 
 /* Proceed */

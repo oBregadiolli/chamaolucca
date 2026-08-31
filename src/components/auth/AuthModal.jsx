@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
+import { formatCpf, isValidCpf, onlyDigits } from '../../lib/utils';
 import fotoLaranja from '../../assets/fotoLaranja.png';
 
 /* ─── logo inline ─── */
@@ -41,7 +42,7 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
   const [blockedUntil, setBlockedUntil] = useState(() => readLoginGuard().blockedUntil || 0);
   const [now, setNow] = useState(Date.now());
 
-  const { signIn, signUp } = useAuth();
+  const { signIn, signUp, isCpfAvailable } = useAuth();
 
   useEffect(() => {
     if (blockedUntil <= Date.now()) return undefined;
@@ -56,6 +57,7 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
     name: '',
     email: '',
     phone: '',
+    cpf: '',
     password: '',
   });
 
@@ -75,6 +77,11 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
   function handlePhoneChange(e) {
     const masked = formatPhone(e.target.value);
     setForm({ ...form, phone: masked });
+    setError('');
+  }
+
+  function handleCpfChange(e) {
+    setForm({ ...form, cpf: formatCpf(e.target.value) });
     setError('');
   }
 
@@ -99,11 +106,20 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
         setBlockedUntil(0);
         onClose();
       } else if (view === 'register') {
+        if (!isValidCpf(form.cpf)) {
+          setError('CPF inválido. Verifique os números.');
+          return;
+        }
+        if (!(await isCpfAvailable(onlyDigits(form.cpf)))) {
+          setError('Este CPF já está cadastrado em outra conta.');
+          return;
+        }
         await signUp({
           email: form.email,
           password: form.password,
           name: form.name,
           phone: form.phone,
+          cpf: onlyDigits(form.cpf),
         });
         onClose();
       }
@@ -115,6 +131,8 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
       const translations = [
         ['invalid login credentials',             'Email ou senha incorretos.'],
         ['user already registered',                'Este email já está cadastrado.'],
+        ['idx_profiles_cpf_unique',                'Este CPF já está cadastrado em outra conta.'],
+        ['database error saving new user',         'Este CPF já está cadastrado em outra conta.'],
         ['password should be at least 6',          'A senha deve ter pelo menos 6 caracteres.'],
         ['email not confirmed',                    'Confirme seu email antes de entrar.'],
         ['unable to validate email',               'Formato de email inválido.'],
@@ -279,6 +297,22 @@ export default function AuthModal({ onClose, initialView = 'login' }) {
                     onChange={handlePhoneChange}
                     maxLength={15}
                     inputMode="numeric"
+                  />
+                </div>
+
+                <div className="auth-field">
+                  <label className="auth-label" htmlFor="auth-register-cpf">CPF</label>
+                  <input
+                    id="auth-register-cpf"
+                    className="auth-input"
+                    type="text"
+                    name="cpf"
+                    placeholder="000.000.000-00"
+                    value={form.cpf}
+                    onChange={handleCpfChange}
+                    maxLength={14}
+                    inputMode="numeric"
+                    required
                   />
                 </div>
 

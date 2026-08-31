@@ -3,9 +3,19 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { formatCurrency } from '../../lib/utils';
 import Icon from '../ui/Icon';
+import PromotionMessages from '../cart/PromotionMessages';
 
 export default function CartSidebar({ onOpenAuth }) {
-  const { items, subtotal, updateQuantity, removeItem } = useCart();
+  const {
+    cartItems,
+    subtotal,
+    promotionDiscount,
+    promotionSubtotal,
+    promotionRewards,
+    promotionNudges,
+    updateQuantity,
+    removeItem,
+  } = useCart();
   const { user } = useAuth();
   const navigate = useNavigate();
 
@@ -30,7 +40,7 @@ export default function CartSidebar({ onOpenAuth }) {
         </div>
       </div>
 
-      {items.length === 0 ? (
+      {cartItems.length === 0 ? (
         /* Empty */
         <div className="cart-sidebar-empty">
           <div className="cart-sidebar-bag">
@@ -43,7 +53,7 @@ export default function CartSidebar({ onOpenAuth }) {
         <>
           {/* Items */}
           <div className="cart-sidebar-items">
-            {items.map((item) => (
+            {cartItems.map((item) => (
               <SidebarItem
                 key={item.id}
                 item={item}
@@ -53,11 +63,15 @@ export default function CartSidebar({ onOpenAuth }) {
             ))}
           </div>
 
+          <PromotionMessages rewards={promotionRewards} nudges={promotionNudges} compact />
+
           {/* Subtotal */}
           <div className="cart-sidebar-subtotal">
-            <span className="cart-sidebar-subtotal-label">Subtotal:</span>
+            <span className="cart-sidebar-subtotal-label">
+              {promotionDiscount > 0 ? 'Total com promoções:' : 'Subtotal:'}
+            </span>
             <span className="cart-sidebar-subtotal-value">
-              {formatCurrency(subtotal)}
+              {formatCurrency(promotionDiscount > 0 ? promotionSubtotal : subtotal)}
             </span>
           </div>
 
@@ -76,9 +90,10 @@ export default function CartSidebar({ onOpenAuth }) {
 function SidebarItem({ item, onUpdate, onRemove }) {
   const { quantity, price } = item;
   const total = price * quantity;
+  const isGift = Boolean(item.isPromotionGift);
 
   return (
-    <div className="cart-sidebar-item">
+    <div className={`cart-sidebar-item${isGift ? ' cart-sidebar-item--gift' : ''}`}>
       <div className="cart-sidebar-item-row">
         <div className="cart-sidebar-item-img">
           {item.image_url && item.image_url.startsWith('http') ? (
@@ -104,14 +119,17 @@ function SidebarItem({ item, onUpdate, onRemove }) {
         </div>
         <div className="cart-sidebar-item-info">
           <div className="cart-sidebar-item-name">{item.name}</div>
-          <div className="cart-sidebar-item-sub">cada</div>
+          <div className="cart-sidebar-item-sub">
+            {isGift ? 'Brinde automático' : 'cada'}
+          </div>
         </div>
         <div className="cart-sidebar-item-right">
-          <div className="cart-sidebar-item-price">{formatCurrency(total)}</div>
+          <div className="cart-sidebar-item-price">{isGift ? 'Grátis' : formatCurrency(total)}</div>
           <span className="cart-sidebar-item-qty">{quantity}x</span>
         </div>
       </div>
 
+      {!isGift && (
       <div className="sidebar-qty-pill">
         <button
           className="sidebar-qty-btn"
@@ -132,6 +150,7 @@ function SidebarItem({ item, onUpdate, onRemove }) {
           +
         </button>
       </div>
+      )}
     </div>
   );
 }

@@ -50,16 +50,31 @@ export function AuthProvider({ children }) {
     }
   }
 
-  async function signUp({ email, password, name, phone }) {
+  async function signUp({ email, password, name, phone, cpf }) {
     const { data, error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name, phone } },
+      options: { data: { name, phone, cpf } },
     });
     if (error) throw error;
 
-    // Profile criado pelo trigger handle_new_user (server-side, role = customer)
+    // Profile criado pelo trigger handle_new_user (server-side, role = customer).
+    // O CPF vem no metadata acima e é gravado pelo trigger; o índice único
+    // idx_profiles_cpf_unique garante 1 conta por CPF (migration 008).
     return data;
+  }
+
+  /** Pré-checa se o CPF ainda não está em uso, para dar erro limpo no cadastro.
+   *  Fail-open: se o RPC não existir/der erro, deixa seguir — o índice único
+   *  no banco é o backup que impede duplicata de fato. */
+  async function isCpfAvailable(cpf) {
+    try {
+      const { data, error } = await supabase.rpc('cpf_disponivel', { p_cpf: cpf });
+      if (error) return true; // fail-open (ex: migration ainda não aplicada)
+      return data !== false;
+    } catch {
+      return true;
+    }
   }
 
   async function signIn({ email, password }) {
@@ -84,6 +99,7 @@ export function AuthProvider({ children }) {
     signUp,
     signIn,
     signOut,
+    isCpfAvailable,
     refreshProfile: () => user && fetchProfile(user.id).then(setProfile),
   };
 

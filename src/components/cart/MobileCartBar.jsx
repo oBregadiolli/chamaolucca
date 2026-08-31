@@ -8,7 +8,7 @@ import Icon from '../ui/Icon';
  * Hidden when the cart modal is already open to avoid overlap.
  */
 export default function MobileCartBar() {
-  const { subtotal, totalItems, setIsOpen, isOpen } = useCart();
+  const { subtotal, promotionDiscount, promotionSubtotal, totalItems, setIsOpen, isOpen } = useCart();
   const location = useLocation();
 
   const isCheckout = location.pathname.startsWith('/checkout');
@@ -28,7 +28,9 @@ export default function MobileCartBar() {
       >
         <span className="mobile-cart-bar-badge">{totalItems}</span>
         <span className="mobile-cart-bar-text">Ver sacola</span>
-        <span className="mobile-cart-bar-total">{formatCurrency(subtotal)}</span>
+        <span className="mobile-cart-bar-total">
+          {formatCurrency(promotionDiscount > 0 ? promotionSubtotal : subtotal)}
+        </span>
       </button>
     </div>
   );

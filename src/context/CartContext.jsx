@@ -1,5 +1,7 @@
-import { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import { createContext, useContext, useState, useCallback, useEffect, useRef, useMemo } from 'react';
 import { supabase } from '../lib/supabase';
+import { fetchActivePromotions } from '../services/promotions';
+import { evaluatePromotions } from '../../supabase/functions/_shared/promotionEngine';
 
 const CartContext = createContext({});
 
@@ -48,6 +50,8 @@ export function CartProvider({ children }) {
   const [isOpen,       setIsOpen]       = useState(false);
   const [userId,       setUserId]       = useState(null);
   const [syncFailure,  setSyncFailure]  = useState(false);
+  const [promotions,   setPromotions]   = useState([]);
+  const [promotionsFailure, setPromotionsFailure] = useState(false);
 
   // Refs para evitar race conditions
   const mergeInProgress  = useRef(false);
@@ -104,6 +108,28 @@ export function CartProvider({ children }) {
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
+
+  // ── Promoções ativas ─────────────────────────────────
+  useEffect(() => {
+    let alive = true;
+
+    async function loadPromotions() {
+      try {
+        const rows = await fetchActivePromotions();
+        if (!alive) return;
+        setPromotions(rows);
+        setPromotionsFailure(false);
+      } catch (err) {
+        if (!alive) return;
+        console.warn('[Cart] promotions load failed:', err.message);
+        setPromotions([]);
+        setPromotionsFailure(true);
+      }
+    }
+
+    loadPromotions();
+    return () => { alive = false; };
+  }, []);
 
   async function loadAndMergeCart(uid) {
     if (mergeInProgress.current) return;
@@ -317,11 +343,37 @@ export function CartProvider({ children }) {
 
   const dismissSyncFailure = useCallback(() => setSyncFailure(false), []);
 
-  const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
   const subtotal   = items.reduce((sum, item) => sum + item.price * item.quantity, 0);
+  const promotionSummary = useMemo(
+    () => evaluatePromotions(items, promotions),
+    [items, promotions],
+  );
+  const automaticGiftItems = useMemo(
+    () => promotionSummary.freeRewards.map((reward) => ({
+      id: `promotion-gift:${reward.promotion.id}:${reward.productId}`,
+      product_id: reward.productId,
+      name: reward.productName,
+      price: 0,
+      image_url: reward.product?.image_url || null,
+      unit: reward.product?.unit || 'un',
+      quantity: Number(reward.quantity ?? 1),
+      isPromotionGift: true,
+      promotionName: reward.promotion?.name || 'Promoção',
+    })),
+    [promotionSummary.freeRewards],
+  );
+  const cartItems = useMemo(
+    () => [...items, ...automaticGiftItems],
+    [items, automaticGiftItems],
+  );
+  const totalItems = cartItems.reduce((sum, item) => sum + item.quantity, 0);
+  const promotionDiscount = promotionSummary.promotionDiscount;
+  const promotionSubtotal = promotionSummary.promotionSubtotal;
 
   const value = {
     items,
+    cartItems,
+    automaticGiftItems,
     isOpen,
     setIsOpen,
     addItem,
@@ -330,6 +382,11 @@ export function CartProvider({ children }) {
     clearCart,
     totalItems,
     subtotal,
+    promotionDiscount,
+    promotionSubtotal,
+    promotionRewards: promotionSummary.eligible,
+    promotionNudges: promotionSummary.nudges,
+    promotionsFailure,
     cartId,
     syncFailure,
     dismissSyncFailure,
@@ -338,6 +395,7 @@ export function CartProvider({ children }) {
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export function useCart() {
   const context = useContext(CartContext);
   if (!context) throw new Error('useCart must be used within CartProvider');

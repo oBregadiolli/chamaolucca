@@ -12,6 +12,7 @@ const NAV_ITEMS = [
   { to: '/admin/categorias',       label: 'Categorias',   icon: 'label'                       },
   { to: '/admin/configuracoes',    label: 'Configurações', icon: 'settings'                   },
   { to: '/admin/cupons',           label: 'Cupons',        icon: 'confirmation_number'        },
+  { to: '/admin/promocoes',        label: 'Promoções',     icon: 'sell'                       },
   { to: '/admin/agenda',           label: 'Agenda',        icon: 'event_note'                 },
   { to: '/admin/rotas',            label: 'Rotas',         icon: 'route'                      },
   { to: '/admin/entregadores',     label: 'Entregadores',  icon: 'person_pin'                 },
